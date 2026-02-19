@@ -1,0 +1,77 @@
+# Cooperative Card Game — Copilot Instructions
+
+## Project Overview
+
+This is a cooperative 2-player browser card game. Players place cards face-down on a shared board, then cards are revealed. The goal is to collaboratively sort the dealt cards into the correct global order — without seeing each other's hands or communicating.
+
+---
+
+## Game Rules
+
+### Deck & Deal
+
+- The deck consists of 4 suits × 10 cards (numbered 1–10): **Hearts, Spades, Diamonds, Clubs**.
+- Total deck size: 40 cards.
+- At the start of a game, the deck is shuffled and each player is dealt **7 cards**.
+- The remaining 26 cards are set aside and are not used for the rest of the game.
+- Players cannot see each other's hands at any point.
+
+### The Board
+
+- The board has **15 slots**, arranged left to right in a single row.
+- Only 14 cards will be placed (7 per player), so **one slot will always remain empty**.
+- The empty slot is ignored when evaluating the final result.
+
+### Turn Order Decision
+
+Before gameplay begins, both players independently state one of:
+
+1. "I want to go first"
+2. "I'm neutral"
+3. "I don't want to go first"
+
+The players must reach an agreement on who goes first based on these preferences. If both want to go first or both don't want to go first, the game must prompt them to resolve the conflict (e.g., re-pick or random tiebreak — implementation TBD).
+
+### Placement Phase
+
+- Players **strictly alternate turns**, starting with the agreed-upon first player.
+- On their turn, a player selects one card from their hand and places it **face-down** on any **empty slot** on the board.
+- Cards are placed face-down — neither player can see the values of any cards on the board.
+- However, both players **can see which slots are occupied** (they just can't see the card values).
+- A player **can click on a card they previously placed** to peek at its value (only their own cards).
+- Each player has **exactly 1 pass** they may use during the placement phase. When a player passes:
+  - They do not place a card that turn.
+  - The other player takes the next turn, effectively playing twice in a row.
+  - A pass is optional — a player does not have to use it.
+  - An unused pass has no effect on the game.
+- The placement phase ends when both players have placed all 7 of their cards (14 cards total on the board).
+
+### Swap Phase
+
+After all cards are placed and before the reveal:
+
+1. The player who went **first** in the placement phase gets to suggest a swap first.
+2. A swap suggestion consists of choosing **any 2 adjacent occupied cards** on the board (the cards remain face-down; the player does not know their values).
+3. The **other player must agree** to the swap for it to happen. If they disagree, the swap does not occur.
+4. Then the **second player** gets their swap opportunity, following the same rules.
+5. Each player has **exactly 1 swap opportunity** (they may choose not to suggest a swap).
+
+### Reveal Phase
+
+- After the swap phase, cards are revealed **one by one**, starting from the card with the **lowest value in the global sort order** and progressing to the highest.
+- Each card flips face-up in its slot on the board, one at a time, allowing for dramatic reveal animations.
+- The empty slot is skipped/ignored.
+- Functionally this is equivalent to revealing all at once — the sequential reveal is purely for presentation.
+
+### Win Condition
+
+- The players **win** if all 14 revealed cards, read left to right (skipping the empty slot), are in **correct relative sorted order**.
+- The global sort order is: **Hearts < Spades < Diamonds < Clubs**, and within each suit, **1 < 2 < ... < 10**.
+- Full sorted reference: H1, H2, ..., H10, S1, S2, ..., S10, D1, D2, ..., D10, C1, C2, ..., C10.
+- Only the 14 dealt cards matter — they must appear in the same relative order as they would in the full sorted sequence above.
+- If even one card is out of relative order, the players **lose**. There is no partial scoring.
+
+### Communication
+
+- Players are **not allowed to communicate** during the game (no hints about what cards they hold or where they are placing them).
+- This rule may be relaxed in future versions.
