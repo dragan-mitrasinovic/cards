@@ -6,6 +6,30 @@ This is a cooperative 2-player browser card game. Players place cards face-down 
 
 ---
 
+## General Rules
+
+- **Never introduce a new language, framework, library, or dependency without asking first.** When a new dependency or tool is needed:
+  1. Present all reasonable alternatives with pros and cons for each.
+  2. Wait for explicit approval before proceeding with the chosen option.
+  3. Once approved, update the Tech Stack section of this file (`copilot-instructions.md`) to reflect the new addition.
+- This applies to everything: runtime dependencies, dev dependencies, frameworks, testing libraries, build tools, linters, etc.
+
+---
+
+## Tech Stack
+
+The tech stack is being defined iteratively. Only the items listed below are confirmed. Everything else is TBD — always ask before introducing anything new.
+
+- **Platform:** Web application (browser-based)
+- **Framework:** Angular 21
+- **Language:** TypeScript (implied by Angular)
+- **Styling:** CSS (plain, no preprocessor)
+- **SSR/SSG:** Disabled (client-side only)
+- **Testing:** Jasmine + Karma (Angular default)
+- **Package Manager:** npm
+
+---
+
 ## Game Rules
 
 ### Deck & Deal
