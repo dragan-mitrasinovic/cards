@@ -166,7 +166,7 @@ LOBBY (waiting for 2nd player)
 ## Implementation Progress
 
 ### Phase 1: Project Setup & Skeleton
-- [ ] Go server skeleton in `/server` with gorilla/websocket
+- [x] Go server skeleton in `/server` with gorilla/websocket
 - [ ] Angular routing — `HomeComponent` (`/`) and `GameComponent` (`/game/:id`)
 - [ ] Basic WebSocket connection between frontend and backend
 - [ ] Room creation & joining (room codes + shareable links)

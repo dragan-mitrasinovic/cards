@@ -13,6 +13,7 @@ This is a cooperative 2-player browser card game. Players place cards face-down 
   2. Wait for explicit approval before proceeding with the chosen option.
   3. Once approved, update the Tech Stack section of this file (`copilot-instructions.md`) to reflect the new addition.
 - This applies to everything: runtime dependencies, dev dependencies, frameworks, testing libraries, build tools, linters, etc.
+- **After completing any item in `docs/PLAN.md`, update the checkbox from `[ ]` to `[x]` and commit the change.**
 
 ---
 
@@ -21,12 +22,12 @@ This is a cooperative 2-player browser card game. Players place cards face-down 
 The tech stack is being defined iteratively. Only the items listed below are confirmed. Everything else is TBD — always ask before introducing anything new.
 
 - **Platform:** Web application (browser-based)
-- **Framework:** Angular 21
-- **Language:** TypeScript (implied by Angular)
+- **Frontend:** Angular 21 (TypeScript)
+- **Backend:** Go with gorilla/websocket (in `/server` directory)
 - **Styling:** CSS (plain, no preprocessor)
 - **SSR/SSG:** Disabled (client-side only)
 - **Testing:** Jasmine + Karma (Angular default)
-- **Package Manager:** npm
+- **Package Manager:** npm (frontend), Go modules (backend)
 
 ---
 
