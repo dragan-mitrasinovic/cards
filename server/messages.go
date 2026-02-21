@@ -53,3 +53,23 @@ type ErrorResponseMsg struct {
 func newError(message string) ErrorResponseMsg {
 	return ErrorResponseMsg{Type: "error", Message: message}
 }
+
+// --- Game messages ---
+
+// TurnOrderPromptMsg asks a player to pick their turn order preference.
+type TurnOrderPromptMsg struct {
+	Type string `json:"type"`
+}
+
+// TurnOrderPickMsg is sent by a player to indicate their turn order preference.
+type TurnOrderPickMsg struct {
+	Type       string `json:"type"`
+	Preference string `json:"preference"`
+}
+
+// GameStartMsg is sent to each player when the game begins, containing their hand.
+type GameStartMsg struct {
+	Type        string `json:"type"`
+	Hand        []Card `json:"hand"`
+	FirstPlayer int    `json:"firstPlayer"`
+}

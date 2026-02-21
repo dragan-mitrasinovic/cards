@@ -19,6 +19,7 @@ const (
 type Room struct {
 	Code    string
 	Players [2]*Client
+	Game    *Game
 	mu      sync.Mutex
 }
 
@@ -63,6 +64,36 @@ func (r *Room) Partner(c *Client) *Client {
 		}
 	}
 	return nil
+}
+
+// StartGame creates and initializes a new game for the room.
+func (r *Room) StartGame() (*Game, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	if r.Game != nil {
+		return nil, fmt.Errorf("room %s: game already started", r.Code)
+	}
+	if r.Players[0] == nil || r.Players[1] == nil {
+		return nil, fmt.Errorf("room %s: both players required to start", r.Code)
+	}
+	game, err := NewGame()
+	if err != nil {
+		return nil, err
+	}
+	r.Game = game
+	return game, nil
+}
+
+// GamePhase returns the current game phase, or PhaseLobby if no game exists.
+func (r *Room) GamePhase() Phase {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	if r.Game == nil {
+		return PhaseLobby
+	}
+	return r.Game.Phase
 }
 
 // RoomManager manages active game rooms.

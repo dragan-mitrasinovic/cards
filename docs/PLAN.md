@@ -172,7 +172,7 @@ LOBBY (waiting for 2nd player)
 - [x] Room creation & joining (room codes + shareable links)
 
 ### Phase 2: Core Game Loop
-- [ ] Deck, shuffle, deal logic (server)
+- [x] Deck, shuffle, deal logic (server)
 - [ ] Turn order pick phase (transparent re-pick on conflict)
 - [ ] Placement phase (alternating turns, validation, pass mechanic)
 - [ ] Board and hand rendering (frontend)

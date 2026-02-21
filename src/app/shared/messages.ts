@@ -2,6 +2,12 @@ export interface BaseMessage {
   type: string;
 }
 
+/** Card represents a single playing card with suit and value. */
+export interface Card {
+  suit: string;
+  value: number;
+}
+
 // --- Client → Server messages ---
 
 export interface EchoMessage extends BaseMessage {
@@ -20,7 +26,12 @@ export interface JoinRoomMessage extends BaseMessage {
   roomCode: string;
 }
 
-export type ClientMessage = EchoMessage | CreateRoomMessage | JoinRoomMessage;
+export interface TurnOrderPickMessage extends BaseMessage {
+  type: 'turn_order_pick';
+  preference: 'first' | 'neutral' | 'no_first';
+}
+
+export type ClientMessage = EchoMessage | CreateRoomMessage | JoinRoomMessage | TurnOrderPickMessage;
 
 // --- Server → Client messages ---
 
@@ -52,9 +63,21 @@ export interface PlayerDisconnectedMessage extends BaseMessage {
   playerName: string;
 }
 
+export interface TurnOrderPromptMessage extends BaseMessage {
+  type: 'turn_order_prompt';
+}
+
+export interface GameStartMessage extends BaseMessage {
+  type: 'game_start';
+  hand: Card[];
+  firstPlayer: number;
+}
+
 export type ServerMessage =
   | EchoResponseMessage
   | ErrorMessage
   | RoomCreatedMessage
   | PlayerJoinedMessage
-  | PlayerDisconnectedMessage;
+  | PlayerDisconnectedMessage
+  | TurnOrderPromptMessage
+  | GameStartMessage;

@@ -121,6 +121,8 @@ func (c *Client) handleMessage(raw []byte) {
 		c.handleCreateRoom(raw)
 	case "join_room":
 		c.handleJoinRoom(raw)
+	case "turn_order_pick":
+		c.handleTurnOrderPick(raw)
 	default:
 		c.SendMsg(newError("unknown message type: " + env.Type))
 	}
@@ -241,7 +243,38 @@ func (c *Client) handleJoinRoom(raw []byte) {
 			PlayerNumber: partner.playerNumber,
 			PartnerName:  c.name,
 		})
+
+		// Both players present — start the game
+		game, err := room.StartGame()
+		if err != nil {
+			slog.Error("failed to start game", "error", err, "room", room.Code)
+		} else {
+			slog.Info("game started", "room", room.Code, "phase", game.Phase)
+			c.SendMsg(TurnOrderPromptMsg{Type: "turn_order_prompt"})
+			partner.SendMsg(TurnOrderPromptMsg{Type: "turn_order_prompt"})
+		}
 	}
+}
+
+func (c *Client) handleTurnOrderPick(raw []byte) {
+	var msg TurnOrderPickMsg
+	if err := json.Unmarshal(raw, &msg); err != nil {
+		c.SendMsg(newError("invalid turn_order_pick message"))
+		return
+	}
+
+	if c.room == nil {
+		c.SendMsg(newError("no active game"))
+		return
+	}
+
+	if c.room.GamePhase() != PhaseTurnOrderPick {
+		c.SendMsg(newError("not in turn order pick phase"))
+		return
+	}
+
+	// Turn order pick logic will be implemented in the next task
+	slog.Info("turn order pick received", "player", c.name, "preference", msg.Preference)
 }
 
 func (c *Client) cleanup() {

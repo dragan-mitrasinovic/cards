@@ -59,6 +59,10 @@ export class GameComponent implements OnInit, OnDestroy {
           }
           break;
         }
+        case 'turn_order_prompt': {
+          this.gameState.phase.set('turn_order_pick');
+          break;
+        }
         case 'error': {
           const err = msg as ErrorMessage;
           if (this.needsJoin()) {
