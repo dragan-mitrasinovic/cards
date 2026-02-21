@@ -135,6 +135,8 @@ func (c *Client) handleMessage(raw []byte) {
 		c.handleSkipSwap()
 	case "respond_swap":
 		c.handleRespondSwap(raw)
+	case "play_again":
+		c.handlePlayAgain()
 	default:
 		c.SendMsg(newError("unknown message type: " + env.Type))
 	}
@@ -704,6 +706,65 @@ func (c *Client) sendRevealCards(p1, p2 *Client, order []RevealEntry, win bool) 
 	}
 	if p2 != nil {
 		p2.SendMsg(result)
+	}
+}
+
+func (c *Client) handlePlayAgain() {
+	if c.room == nil {
+		c.SendMsg(newError("no active game"))
+		return
+	}
+
+	c.room.mu.Lock()
+	game := c.room.Game
+	if game == nil || game.Phase != PhaseGameOver {
+		c.room.mu.Unlock()
+		c.SendMsg(newError("game is not over"))
+		return
+	}
+
+	idx := c.playerNumber - 1
+	if c.room.PlayAgainReady[idx] {
+		c.room.mu.Unlock()
+		c.SendMsg(newError("already requested rematch"))
+		return
+	}
+
+	c.room.PlayAgainReady[idx] = true
+	bothReady := c.room.PlayAgainReady[0] && c.room.PlayAgainReady[1]
+	p1 := c.room.Players[0]
+	p2 := c.room.Players[1]
+	c.room.mu.Unlock()
+
+	slog.Info("play again requested", "player", c.name, "room", c.room.Code)
+
+	if !bothReady {
+		// Notify both that this player wants a rematch
+		waiting := PlayAgainWaitingMsg{Type: "play_again_waiting", PlayerName: c.name}
+		if p1 != nil {
+			p1.SendMsg(waiting)
+		}
+		if p2 != nil {
+			p2.SendMsg(waiting)
+		}
+		return
+	}
+
+	// Both ready — start new game
+	newGame, err := c.room.ResetGame()
+	if err != nil {
+		slog.Error("failed to reset game for rematch", "error", err, "room", c.room.Code)
+		c.SendMsg(newError("failed to start rematch"))
+		return
+	}
+
+	slog.Info("rematch started", "room", c.room.Code, "phase", newGame.Phase)
+
+	if p1 != nil {
+		p1.SendMsg(TurnOrderPromptMsg{Type: "turn_order_prompt"})
+	}
+	if p2 != nil {
+		p2.SendMsg(TurnOrderPromptMsg{Type: "turn_order_prompt"})
 	}
 }
 

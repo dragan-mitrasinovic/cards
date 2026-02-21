@@ -47,6 +47,10 @@ export class GameStateService {
   // Game result state
   readonly gameResult = signal<{ win: boolean } | null>(null);
 
+  // Rematch state
+  readonly partnerWantsRematch = signal(false);
+  readonly playAgainSent = signal(false);
+
   reset(): void {
     this.playerName.set('');
     this.playerNumber.set(0);
@@ -67,6 +71,29 @@ export class GameStateService {
     this.revealedCount.set(0);
     this.totalRevealCards.set(0);
     this.gameResult.set(null);
+    this.partnerWantsRematch.set(false);
+    this.playAgainSent.set(false);
+  }
+
+  /** resetForRematch resets game state for a new game while keeping room/player info. */
+  resetForRematch(): void {
+    this.phase.set('lobby');
+    this.hand.set([]);
+    this.turnOrderResult.set(null);
+    this.firstPlayer.set(0);
+    this.currentTurn.set(0);
+    this.isMyTurn.set(false);
+    this.board.set(this.emptyBoard());
+    this.passUsed.set([false, false]);
+    this.handUsed.set(new Array(7).fill(false));
+    this.swapPending.set(false);
+    this.swapSlots.set(null);
+    this.swapSuggester.set(0);
+    this.revealedCount.set(0);
+    this.totalRevealCards.set(0);
+    this.gameResult.set(null);
+    this.partnerWantsRematch.set(false);
+    this.playAgainSent.set(false);
   }
 
   private emptyBoard(): BoardSlot[] {

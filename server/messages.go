@@ -194,3 +194,16 @@ type GameResultMsg struct {
 	Win   bool        `json:"win"`
 	Board []BoardCard `json:"board"`
 }
+
+// --- Play again / rematch messages ---
+
+// PlayAgainMsg is sent by a player to request a rematch.
+type PlayAgainMsg struct {
+	Type string `json:"type"`
+}
+
+// PlayAgainWaitingMsg notifies both players that one player wants a rematch.
+type PlayAgainWaitingMsg struct {
+	Type       string `json:"type"`
+	PlayerName string `json:"playerName"`
+}

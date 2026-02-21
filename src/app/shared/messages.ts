@@ -61,7 +61,11 @@ export interface RespondSwapMessage extends BaseMessage {
   accept: boolean;
 }
 
-export type ClientMessage = EchoMessage | CreateRoomMessage | JoinRoomMessage | TurnOrderPickMessage | PlaceCardMessage | PassMessage | PeekMessage | SuggestSwapMessage | SkipSwapMessage | RespondSwapMessage;
+export interface PlayAgainMessage extends BaseMessage {
+  type: 'play_again';
+}
+
+export type ClientMessage = EchoMessage | CreateRoomMessage | JoinRoomMessage | TurnOrderPickMessage | PlaceCardMessage | PassMessage | PeekMessage | SuggestSwapMessage | SkipSwapMessage | RespondSwapMessage | PlayAgainMessage;
 
 // --- Server → Client messages ---
 
@@ -164,6 +168,11 @@ export interface GameResultMessage extends BaseMessage {
   board: { slotIndex: number; card: Card }[];
 }
 
+export interface PlayAgainWaitingMessage extends BaseMessage {
+  type: 'play_again_waiting';
+  playerName: string;
+}
+
 export type ServerMessage =
   | EchoResponseMessage
   | ErrorMessage
@@ -181,4 +190,5 @@ export type ServerMessage =
   | SwapSuggestedMessage
   | SwapResultMessage
   | RevealCardMessage
-  | GameResultMessage;
+  | GameResultMessage
+  | PlayAgainWaitingMessage;

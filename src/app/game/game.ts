@@ -1,11 +1,11 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal, OnInit, OnDestroy } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map, Subscription } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { WebSocketService } from '../shared/websocket.service';
 import { GameStateService } from '../shared/game-state.service';
-import { PlayerJoinedMessage, PlayerDisconnectedMessage, ErrorMessage, TurnOrderResultMessage, GameStartMessage, CardPlacedMessage, PlayerPassedMessage, PeekResultMessage, SwapPromptMessage, SwapSuggestedMessage, SwapResultMessage, RevealCardMessage, GameResultMessage } from '../shared/messages';
+import { PlayerJoinedMessage, PlayerDisconnectedMessage, ErrorMessage, TurnOrderResultMessage, GameStartMessage, CardPlacedMessage, PlayerPassedMessage, PeekResultMessage, SwapPromptMessage, SwapSuggestedMessage, SwapResultMessage, RevealCardMessage, GameResultMessage, PlayAgainWaitingMessage } from '../shared/messages';
 import { TurnOrderPickComponent } from './turn-order-pick/turn-order-pick';
 import { BoardComponent } from './board/board';
 import { HandComponent } from './hand/hand';
@@ -19,6 +19,7 @@ import { HandComponent } from './hand/hand';
 })
 export class GameComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
   private params = toSignal(this.route.paramMap.pipe(map((p) => p.get('id'))));
   readonly roomId = computed(() => this.params() ?? '');
 
@@ -66,6 +67,12 @@ export class GameComponent implements OnInit, OnDestroy {
           break;
         }
         case 'turn_order_prompt': {
+          // If coming from game_over, this is a rematch
+          if (this.gameState.phase() === 'game_over') {
+            this.revealTimeouts.forEach(t => clearTimeout(t));
+            this.revealTimeouts = [];
+            this.gameState.resetForRematch();
+          }
           this.gameState.phase.set('turn_order_pick');
           break;
         }
@@ -184,6 +191,13 @@ export class GameComponent implements OnInit, OnDestroy {
           this.revealTimeouts.push(timeout);
           break;
         }
+        case 'play_again_waiting': {
+          const waiting = msg as PlayAgainWaitingMessage;
+          if (waiting.playerName !== this.gameState.playerName()) {
+            this.gameState.partnerWantsRematch.set(true);
+          }
+          break;
+        }
         case 'error': {
           const err = msg as ErrorMessage;
           if (this.needsJoin()) {
@@ -272,5 +286,16 @@ export class GameComponent implements OnInit, OnDestroy {
 
   respondSwap(accept: boolean): void {
     this.ws.send({ type: 'respond_swap', accept });
+  }
+
+  playAgain(): void {
+    this.ws.send({ type: 'play_again' });
+    this.gameState.playAgainSent.set(true);
+  }
+
+  leaveGame(): void {
+    this.ws.disconnect();
+    this.gameState.reset();
+    this.router.navigate(['/']);
   }
 }

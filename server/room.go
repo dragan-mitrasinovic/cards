@@ -17,10 +17,11 @@ const (
 
 // Room represents a game room with up to two players.
 type Room struct {
-	Code    string
-	Players [2]*Client
-	Game    *Game
-	mu      sync.Mutex
+	Code           string
+	Players        [2]*Client
+	Game           *Game
+	PlayAgainReady [2]bool // tracks which players want a rematch
+	mu             sync.Mutex
 }
 
 // AddPlayer adds a client to the room. Returns the assigned player number (1 or 2).
@@ -94,6 +95,23 @@ func (r *Room) GamePhase() Phase {
 		return PhaseLobby
 	}
 	return r.Game.Phase
+}
+
+// ResetGame creates a new game for a rematch, clearing play-again state.
+func (r *Room) ResetGame() (*Game, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	if r.Players[0] == nil || r.Players[1] == nil {
+		return nil, fmt.Errorf("room %s: both players required for rematch", r.Code)
+	}
+	game, err := NewGame()
+	if err != nil {
+		return nil, err
+	}
+	r.Game = game
+	r.PlayAgainReady = [2]bool{}
+	return game, nil
 }
 
 // RoomManager manages active game rooms.

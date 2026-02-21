@@ -181,7 +181,7 @@ LOBBY (waiting for 2nd player)
 - [x] Swap phase logic (suggest, accept/reject, skip)
 - [x] Reveal phase (sequential flip animation)
 - [x] Win/lose evaluation
-- [ ] Game over screen + rematch
+- [x] Game over screen + rematch
 
 ### Phase 4: Polish & UX
 - [ ] Card flip/placement/swap animations
