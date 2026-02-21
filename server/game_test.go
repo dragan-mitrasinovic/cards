@@ -516,10 +516,17 @@ func TestSuggestSwap(t *testing.T) {
 		}
 	})
 
-	t.Run("non-adjacent slots", func(t *testing.T) {
+	t.Run("non-adjacent slots allowed", func(t *testing.T) {
 		g := newSwapTestGame()
-		if err := g.SuggestSwap(1, 0, 2); err == nil {
-			t.Error("expected error for non-adjacent slots")
+		if err := g.SuggestSwap(1, 0, 2); err != nil {
+			t.Errorf("unexpected error for non-adjacent slots: %v", err)
+		}
+	})
+
+	t.Run("same slot", func(t *testing.T) {
+		g := newSwapTestGame()
+		if err := g.SuggestSwap(1, 0, 0); err == nil {
+			t.Error("expected error for same slot")
 		}
 	})
 

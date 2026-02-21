@@ -264,8 +264,8 @@ func (c *Client) handleJoinRoom(raw []byte) {
 			slog.Error("failed to start game", "error", err, "room", room.Code)
 		} else {
 			slog.Info("game started", "room", room.Code, "phase", game.Phase)
-			c.SendMsg(TurnOrderPromptMsg{Type: "turn_order_prompt"})
-			partner.SendMsg(TurnOrderPromptMsg{Type: "turn_order_prompt"})
+			c.SendMsg(TurnOrderPromptMsg{Type: "turn_order_prompt", Hand: game.Hands[c.playerNumber-1][:]})
+			partner.SendMsg(TurnOrderPromptMsg{Type: "turn_order_prompt", Hand: game.Hands[partner.playerNumber-1][:]})
 		}
 	}
 }
@@ -761,10 +761,10 @@ func (c *Client) handlePlayAgain() {
 	slog.Info("rematch started", "room", c.room.Code, "phase", newGame.Phase)
 
 	if p1 != nil {
-		p1.SendMsg(TurnOrderPromptMsg{Type: "turn_order_prompt"})
+		p1.SendMsg(TurnOrderPromptMsg{Type: "turn_order_prompt", Hand: newGame.Hands[0][:]})
 	}
 	if p2 != nil {
-		p2.SendMsg(TurnOrderPromptMsg{Type: "turn_order_prompt"})
+		p2.SendMsg(TurnOrderPromptMsg{Type: "turn_order_prompt", Hand: newGame.Hands[1][:]})
 	}
 }
 

@@ -78,7 +78,7 @@ The players must reach an agreement on who goes first based on these preferences
 After all cards are placed and before the reveal:
 
 1. The player who went **first** in the placement phase gets to suggest a swap first.
-2. A swap suggestion consists of choosing **any 2 adjacent occupied cards** on the board (the cards remain face-down; the player does not know their values).
+2. A swap suggestion consists of choosing **any 2 occupied cards** on the board (the cards remain face-down; the player does not know their values).
 3. The **other player must agree** to the swap for it to happen. If they disagree, the swap does not occur.
 4. Then the **second player** gets their swap opportunity, following the same rules.
 5. Each player has **exactly 1 swap opportunity** (they may choose not to suggest a swap).

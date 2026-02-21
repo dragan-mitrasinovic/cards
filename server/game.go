@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"fmt"
 	"math/big"
+	"sort"
 )
 
 // Suit represents a card suit.
@@ -69,6 +70,8 @@ func Deal() ([7]Card, [7]Card, error) {
 	var hand1, hand2 [7]Card
 	copy(hand1[:], deck[0:7])
 	copy(hand2[:], deck[7:14])
+	sort.Slice(hand1[:], func(i, j int) bool { return hand1[i].SortIndex() < hand1[j].SortIndex() })
+	sort.Slice(hand2[:], func(i, j int) bool { return hand2[i].SortIndex() < hand2[j].SortIndex() })
 	return hand1, hand2, nil
 }
 
@@ -252,7 +255,7 @@ func (g *Game) AllCardsPlaced() bool {
 }
 
 // SuggestSwap records a swap suggestion from the current swap player.
-// slotA and slotB must be adjacent occupied slots.
+// slotA and slotB must be distinct occupied slots.
 func (g *Game) SuggestSwap(playerNumber, slotA, slotB int) error {
 	if g.Phase != PhaseSwap {
 		return fmt.Errorf("not in swap phase")
@@ -266,12 +269,12 @@ func (g *Game) SuggestSwap(playerNumber, slotA, slotB int) error {
 	if slotA < 0 || slotA >= BoardSize || slotB < 0 || slotB >= BoardSize {
 		return fmt.Errorf("invalid slot index")
 	}
+	if slotA == slotB {
+		return fmt.Errorf("slots must be different")
+	}
 	// Normalize so slotA < slotB
 	if slotA > slotB {
 		slotA, slotB = slotB, slotA
-	}
-	if slotB-slotA != 1 {
-		return fmt.Errorf("slots must be adjacent")
 	}
 	if g.Board[slotA] == nil || g.Board[slotB] == nil {
 		return fmt.Errorf("both slots must be occupied")

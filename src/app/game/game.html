@@ -65,12 +65,18 @@
   } @else {
     <!-- Both players are in the room -->
     @if (gameState.phase() === 'turn_order_pick') {
-      <div class="flex justify-center items-center min-h-[300px]">
+      <div class="flex flex-col items-center min-h-[300px] justify-center">
         @if (partnerDisconnected()) {
           <p class="text-yellow-600 mb-2">{{ gameState.partnerName() }} disconnected</p>
         } @else {
           <app-turn-order-pick />
         }
+
+        <!-- Hand preview -->
+        <div class="mt-6 pt-4 border-t border-gray-200 w-full">
+          <p class="text-sm text-gray-500 text-center mb-2">Your hand</p>
+          <app-hand />
+        </div>
       </div>
     } @else if (gameState.phase() === 'placement') {
       <div class="placement-phase">
@@ -135,10 +141,10 @@
           <!-- A swap has been suggested, waiting for response -->
           <div class="flex flex-col items-center gap-4 mb-4 p-4 bg-purple-50 rounded-lg border border-purple-200">
             @if (gameState.swapSuggester() === gameState.playerNumber()) {
-              <p class="text-purple-700 font-medium">You suggested swapping slots {{ (gameState.swapSlots()?.[0] ?? 0) + 1 }} and {{ (gameState.swapSlots()?.[1] ?? 0) + 1 }}</p>
+              <p class="text-purple-700 font-medium">You suggested swapping the highlighted cards</p>
               <p class="text-sm text-gray-500">Waiting for {{ gameState.partnerName() }} to respond…</p>
             } @else {
-              <p class="text-purple-700 font-medium">{{ gameState.partnerName() }} wants to swap slots {{ (gameState.swapSlots()?.[0] ?? 0) + 1 }} and {{ (gameState.swapSlots()?.[1] ?? 0) + 1 }}</p>
+              <p class="text-purple-700 font-medium">{{ gameState.partnerName() }} wants to swap the highlighted cards</p>
               <div class="flex gap-3">
                 <button
                   (click)="respondSwap(true)"
@@ -159,9 +165,9 @@
           <!-- My turn to suggest a swap -->
           <div class="flex flex-col items-center gap-2 mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
             <p class="text-blue-700 font-medium">Your turn to suggest a swap</p>
-            <p class="text-sm text-gray-500">Click two adjacent cards on the board, or skip</p>
+            <p class="text-sm text-gray-500">Click any two cards on the board, or skip</p>
             @if (selectedSwapSlots().length === 1) {
-              <p class="text-sm text-blue-600">Selected slot {{ selectedSwapSlots()[0] + 1 }} — now click an adjacent card</p>
+              <p class="text-sm text-blue-600">Selected slot {{ selectedSwapSlots()[0] + 1 }} — now click another card</p>
             }
             <button
               (click)="skipSwap()"
@@ -181,7 +187,7 @@
         <app-board
           [selectedCardIndex]="-1"
           [swapMode]="gameState.isMyTurn() && !gameState.swapPending()"
-          [selectedSwapSlots]="selectedSwapSlots()"
+          [selectedSwapSlots]="gameState.swapPending() ? (gameState.swapSlots() ?? []) : selectedSwapSlots()"
           (slotPlace)="onSwapSlotClick($event)"
           (slotPeek)="onSwapSlotClick($event)"
         />

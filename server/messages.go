@@ -57,8 +57,10 @@ func newError(message string) ErrorResponseMsg {
 // --- Game messages ---
 
 // TurnOrderPromptMsg asks a player to pick their turn order preference.
+// Includes the player's hand so they can make a strategic decision.
 type TurnOrderPromptMsg struct {
 	Type string `json:"type"`
+	Hand []Card `json:"hand"`
 }
 
 // TurnOrderPickMsg is sent by a player to indicate their turn order preference.

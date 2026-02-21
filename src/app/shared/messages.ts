@@ -99,6 +99,7 @@ export interface PlayerDisconnectedMessage extends BaseMessage {
 
 export interface TurnOrderPromptMessage extends BaseMessage {
   type: 'turn_order_prompt';
+  hand: Card[];
 }
 
 export interface TurnOrderResultMessage extends BaseMessage {

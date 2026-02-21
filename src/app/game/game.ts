@@ -5,7 +5,7 @@ import { map, Subscription } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { WebSocketService } from '../shared/websocket.service';
 import { GameStateService } from '../shared/game-state.service';
-import { PlayerJoinedMessage, PlayerDisconnectedMessage, ErrorMessage, TurnOrderResultMessage, GameStartMessage, CardPlacedMessage, PlayerPassedMessage, PeekResultMessage, SwapPromptMessage, SwapSuggestedMessage, SwapResultMessage, RevealCardMessage, GameResultMessage, PlayAgainWaitingMessage } from '../shared/messages';
+import { PlayerJoinedMessage, PlayerDisconnectedMessage, ErrorMessage, TurnOrderPromptMessage, TurnOrderResultMessage, GameStartMessage, CardPlacedMessage, PlayerPassedMessage, PeekResultMessage, SwapPromptMessage, SwapSuggestedMessage, SwapResultMessage, RevealCardMessage, GameResultMessage, PlayAgainWaitingMessage } from '../shared/messages';
 import { TurnOrderPickComponent } from './turn-order-pick/turn-order-pick';
 import { BoardComponent } from './board/board';
 import { HandComponent } from './hand/hand';
@@ -67,12 +67,14 @@ export class GameComponent implements OnInit, OnDestroy {
           break;
         }
         case 'turn_order_prompt': {
+          const prompt = msg as TurnOrderPromptMessage;
           // If coming from game_over, this is a rematch
           if (this.gameState.phase() === 'game_over') {
             this.revealTimeouts.forEach(t => clearTimeout(t));
             this.revealTimeouts = [];
             this.gameState.resetForRematch();
           }
+          this.gameState.hand.set(prompt.hand);
           this.gameState.phase.set('turn_order_pick');
           break;
         }
@@ -267,10 +269,8 @@ export class GameComponent implements OnInit, OnDestroy {
     } else if (current.length === 1) {
       if (current[0] === slotIndex) {
         this.selectedSwapSlots.set([]);
-      } else if (Math.abs(current[0] - slotIndex) === 1) {
-        this.suggestSwap(current[0], slotIndex);
       } else {
-        this.selectedSwapSlots.set([slotIndex]);
+        this.suggestSwap(current[0], slotIndex);
       }
     }
   }
