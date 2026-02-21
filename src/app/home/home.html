@@ -1,0 +1,45 @@
+<div class="home">
+  <h1 class="title">Cards</h1>
+  <p class="subtitle">A cooperative card sorting game for two players</p>
+
+  <div class="form-section">
+    <label for="player-name">Your Name</label>
+    <input
+      id="player-name"
+      type="text"
+      [(ngModel)]="playerName"
+      placeholder="Enter your name"
+      maxlength="20"
+    />
+  </div>
+
+  <div class="actions">
+    <button
+      class="btn btn-primary"
+      (click)="createGame()"
+      [disabled]="!playerName.trim()"
+    >
+      Create Game
+    </button>
+
+    <div class="divider">
+      <span>or</span>
+    </div>
+
+    <div class="join-section">
+      <input
+        type="text"
+        [(ngModel)]="roomCode"
+        placeholder="Room code"
+        maxlength="6"
+      />
+      <button
+        class="btn btn-secondary"
+        (click)="joinGame()"
+        [disabled]="!playerName.trim() || !roomCode.trim()"
+      >
+        Join Game
+      </button>
+    </div>
+  </div>
+</div>
