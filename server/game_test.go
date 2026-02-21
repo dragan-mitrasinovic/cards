@@ -675,3 +675,31 @@ func TestSwapPhaseWithSuggestions(t *testing.T) {
 		t.Errorf("expected reveal phase after both swaps, got %s", g.Phase)
 	}
 }
+
+func TestRevealOrder(t *testing.T) {
+	g := newSwapTestGame()
+
+	order := g.RevealOrder()
+	if len(order) != 14 {
+		t.Fatalf("expected 14 entries, got %d", len(order))
+	}
+
+	// Verify ascending sort order
+	for i := 1; i < len(order); i++ {
+		if order[i].Card.SortIndex() <= order[i-1].Card.SortIndex() {
+			t.Errorf("reveal order not ascending at index %d: %v (%d) <= %v (%d)",
+				i, order[i].Card, order[i].Card.SortIndex(),
+				order[i-1].Card, order[i-1].Card.SortIndex())
+		}
+	}
+
+	// Verify all entries reference valid board slots
+	for _, entry := range order {
+		if entry.SlotIndex < 0 || entry.SlotIndex >= BoardSize {
+			t.Errorf("invalid slot index: %d", entry.SlotIndex)
+		}
+		if g.Board[entry.SlotIndex] == nil {
+			t.Errorf("slot %d is empty but in reveal order", entry.SlotIndex)
+		}
+	}
+}

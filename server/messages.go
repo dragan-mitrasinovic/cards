@@ -171,3 +171,13 @@ type SwapResultMsg struct {
 	SlotA    int    `json:"slotA,omitempty"`
 	SlotB    int    `json:"slotB,omitempty"`
 }
+
+// --- Reveal phase messages (Server → Client) ---
+
+// RevealCardMsg notifies both players of a card being revealed.
+type RevealCardMsg struct {
+	Type      string `json:"type"`
+	SlotIndex int    `json:"slotIndex"`
+	Card      Card   `json:"card"`
+	Delay     int    `json:"delay"` // cumulative ms from reveal start
+}

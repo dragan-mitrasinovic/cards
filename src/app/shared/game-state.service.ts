@@ -40,6 +40,10 @@ export class GameStateService {
   readonly swapSlots = signal<[number, number] | null>(null);
   readonly swapSuggester = signal(0);
 
+  // Reveal phase state
+  readonly revealedCount = signal(0);
+  readonly totalRevealCards = signal(0);
+
   reset(): void {
     this.playerName.set('');
     this.playerNumber.set(0);
@@ -57,6 +61,8 @@ export class GameStateService {
     this.swapPending.set(false);
     this.swapSlots.set(null);
     this.swapSuggester.set(0);
+    this.revealedCount.set(0);
+    this.totalRevealCards.set(0);
   }
 
   private emptyBoard(): BoardSlot[] {

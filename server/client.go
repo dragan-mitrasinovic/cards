@@ -556,6 +556,10 @@ func (c *Client) handleSkipSwap() {
 
 	phase := game.Phase
 	currentTurn := game.CurrentTurn
+	var revealOrder []RevealEntry
+	if phase == PhaseReveal {
+		revealOrder = game.RevealOrder()
+	}
 	p1 := c.room.Players[0]
 	p2 := c.room.Players[1]
 	c.room.mu.Unlock()
@@ -578,8 +582,9 @@ func (c *Client) handleSkipSwap() {
 		if p2 != nil {
 			p2.SendMsg(prompt)
 		}
+	} else if phase == PhaseReveal {
+		c.sendRevealCards(p1, p2, revealOrder)
 	}
-	// If phase is reveal, the frontend will handle the transition
 }
 
 func (c *Client) handleRespondSwap(raw []byte) {
@@ -613,6 +618,10 @@ func (c *Client) handleRespondSwap(raw []byte) {
 
 	phase := game.Phase
 	currentTurn := game.CurrentTurn
+	var revealOrder []RevealEntry
+	if phase == PhaseReveal {
+		revealOrder = game.RevealOrder()
+	}
 	p1 := c.room.Players[0]
 	p2 := c.room.Players[1]
 	c.room.mu.Unlock()
@@ -639,8 +648,9 @@ func (c *Client) handleRespondSwap(raw []byte) {
 		if p2 != nil {
 			p2.SendMsg(prompt)
 		}
+	} else if phase == PhaseReveal {
+		c.sendRevealCards(p1, p2, revealOrder)
 	}
-	// If phase is reveal, the frontend will handle the transition
 }
 
 // sendYourTurn sends a your_turn message to the player whose turn it is.
@@ -650,6 +660,25 @@ func (c *Client) sendYourTurn(currentTurn int, p1, p2 *Client) {
 		p1.SendMsg(yourTurn)
 	} else if currentTurn == 2 && p2 != nil {
 		p2.SendMsg(yourTurn)
+	}
+}
+
+// sendRevealCards sends reveal_card messages to both players with staggered delays.
+func (c *Client) sendRevealCards(p1, p2 *Client, order []RevealEntry) {
+	const delayPerCard = 800 // ms between reveals
+	for i, entry := range order {
+		msg := RevealCardMsg{
+			Type:      "reveal_card",
+			SlotIndex: entry.SlotIndex,
+			Card:      entry.Card,
+			Delay:     i * delayPerCard,
+		}
+		if p1 != nil {
+			p1.SendMsg(msg)
+		}
+		if p2 != nil {
+			p2.SendMsg(msg)
+		}
 	}
 }
 

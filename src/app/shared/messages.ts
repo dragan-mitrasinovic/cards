@@ -151,6 +151,13 @@ export interface SwapResultMessage extends BaseMessage {
   slotB?: number;
 }
 
+export interface RevealCardMessage extends BaseMessage {
+  type: 'reveal_card';
+  slotIndex: number;
+  card: Card;
+  delay: number;
+}
+
 export type ServerMessage =
   | EchoResponseMessage
   | ErrorMessage
@@ -166,4 +173,5 @@ export type ServerMessage =
   | PeekResultMessage
   | SwapPromptMessage
   | SwapSuggestedMessage
-  | SwapResultMessage;
+  | SwapResultMessage
+  | RevealCardMessage;

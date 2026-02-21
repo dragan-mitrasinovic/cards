@@ -336,6 +336,30 @@ func (g *Game) advanceSwap() {
 	}
 }
 
+// RevealEntry represents a single card to be revealed during the reveal phase.
+type RevealEntry struct {
+	SlotIndex int  `json:"slotIndex"`
+	Card      Card `json:"card"`
+}
+
+// RevealOrder returns the placed cards sorted by global sort order (lowest first).
+// Each entry contains the slot index and the card at that slot.
+func (g *Game) RevealOrder() []RevealEntry {
+	entries := make([]RevealEntry, 0, 14)
+	for i, card := range g.Board {
+		if card != nil {
+			entries = append(entries, RevealEntry{SlotIndex: i, Card: *card})
+		}
+	}
+	// Sort by global sort index (ascending)
+	for i := 1; i < len(entries); i++ {
+		for j := i; j > 0 && entries[j].Card.SortIndex() < entries[j-1].Card.SortIndex(); j-- {
+			entries[j], entries[j-1] = entries[j-1], entries[j]
+		}
+	}
+	return entries
+}
+
 // advanceTurn switches the current turn to the other player,
 // and transitions to the swap phase if all cards are placed.
 func (g *Game) advanceTurn() {

@@ -5,7 +5,7 @@ import { map, Subscription } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { WebSocketService } from '../shared/websocket.service';
 import { GameStateService } from '../shared/game-state.service';
-import { PlayerJoinedMessage, PlayerDisconnectedMessage, ErrorMessage, TurnOrderResultMessage, GameStartMessage, CardPlacedMessage, PlayerPassedMessage, PeekResultMessage, SwapPromptMessage, SwapSuggestedMessage, SwapResultMessage } from '../shared/messages';
+import { PlayerJoinedMessage, PlayerDisconnectedMessage, ErrorMessage, TurnOrderResultMessage, GameStartMessage, CardPlacedMessage, PlayerPassedMessage, PeekResultMessage, SwapPromptMessage, SwapSuggestedMessage, SwapResultMessage, RevealCardMessage } from '../shared/messages';
 import { TurnOrderPickComponent } from './turn-order-pick/turn-order-pick';
 import { BoardComponent } from './board/board';
 import { HandComponent } from './hand/hand';
@@ -34,6 +34,7 @@ export class GameComponent implements OnInit, OnDestroy {
   joinName = '';
 
   private messagesSub?: Subscription;
+  private revealTimeouts: ReturnType<typeof setTimeout>[] = [];
 
   readonly shareableLink = computed(() => {
     const code = this.gameState.roomCode() || this.roomId();
@@ -152,6 +153,26 @@ export class GameComponent implements OnInit, OnDestroy {
           this.selectedSwapSlots.set([]);
           break;
         }
+        case 'reveal_card': {
+          const reveal = msg as RevealCardMessage;
+          if (this.gameState.phase() !== 'reveal') {
+            this.gameState.phase.set('reveal');
+            this.gameState.revealedCount.set(0);
+            this.gameState.totalRevealCards.set(0);
+          }
+          this.gameState.totalRevealCards.update(n => n + 1);
+          const timeout = setTimeout(() => {
+            const board = [...this.gameState.board()];
+            board[reveal.slotIndex] = {
+              ...board[reveal.slotIndex],
+              card: reveal.card,
+            };
+            this.gameState.board.set(board);
+            this.gameState.revealedCount.update(n => n + 1);
+          }, reveal.delay);
+          this.revealTimeouts.push(timeout);
+          break;
+        }
         case 'error': {
           const err = msg as ErrorMessage;
           if (this.needsJoin()) {
@@ -165,6 +186,8 @@ export class GameComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.messagesSub?.unsubscribe();
+    this.revealTimeouts.forEach(t => clearTimeout(t));
+    this.revealTimeouts = [];
   }
 
   joinRoom(): void {

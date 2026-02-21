@@ -18,6 +18,9 @@ export class BoardComponent {
   /** Whether the board is in swap selection mode. */
   readonly swapMode = input(false);
 
+  /** Whether the board is in reveal mode (cards flip face-up). */
+  readonly revealMode = input(false);
+
   /** Indices of slots selected for swapping. */
   readonly selectedSwapSlots = input<number[]>([]);
 

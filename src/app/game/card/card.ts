@@ -13,6 +13,7 @@ export class CardComponent {
   readonly selected = input(false);
   readonly ownCard = input(false);
   readonly disabled = input(false);
+  readonly revealed = input(false);
 
   readonly clicked = output<void>();
 

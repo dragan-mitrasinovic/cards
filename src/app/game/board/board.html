@@ -16,6 +16,7 @@
             [card]="slot.card"
             [faceUp]="!!slot.card"
             [ownCard]="slot.byPlayer === playerNumber()"
+            [revealed]="revealMode() && !!slot.card"
           />
         } @else {
           <span class="slot-number">{{ $index + 1 }}</span>
