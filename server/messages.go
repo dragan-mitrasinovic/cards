@@ -133,3 +133,41 @@ type SwapPromptMsg struct {
 	Type     string `json:"type"`
 	ByPlayer int    `json:"byPlayer"`
 }
+
+// --- Swap phase messages (Client → Server) ---
+
+// SuggestSwapMsg is sent by a player to suggest swapping two adjacent cards.
+type SuggestSwapMsg struct {
+	Type  string `json:"type"`
+	SlotA int    `json:"slotA"`
+	SlotB int    `json:"slotB"`
+}
+
+// SkipSwapMsg is sent by a player to skip their swap opportunity.
+type SkipSwapMsg struct {
+	Type string `json:"type"`
+}
+
+// RespondSwapMsg is sent by a player to accept or reject a swap suggestion.
+type RespondSwapMsg struct {
+	Type   string `json:"type"`
+	Accept bool   `json:"accept"`
+}
+
+// --- Swap phase messages (Server → Client) ---
+
+// SwapSuggestedMsg notifies both players that a swap has been suggested.
+type SwapSuggestedMsg struct {
+	Type     string `json:"type"`
+	SlotA    int    `json:"slotA"`
+	SlotB    int    `json:"slotB"`
+	ByPlayer int    `json:"byPlayer"`
+}
+
+// SwapResultMsg notifies both players of the swap outcome.
+type SwapResultMsg struct {
+	Type     string `json:"type"`
+	Accepted bool   `json:"accepted"`
+	SlotA    int    `json:"slotA,omitempty"`
+	SlotB    int    `json:"slotB,omitempty"`
+}

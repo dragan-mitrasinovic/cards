@@ -35,6 +35,11 @@ export class GameStateService {
   readonly passUsed = signal<[boolean, boolean]>([false, false]);
   readonly handUsed = signal<boolean[]>(new Array(7).fill(false));
 
+  // Swap phase state
+  readonly swapPending = signal(false);
+  readonly swapSlots = signal<[number, number] | null>(null);
+  readonly swapSuggester = signal(0);
+
   reset(): void {
     this.playerName.set('');
     this.playerNumber.set(0);
@@ -49,6 +54,9 @@ export class GameStateService {
     this.board.set(this.emptyBoard());
     this.passUsed.set([false, false]);
     this.handUsed.set(new Array(7).fill(false));
+    this.swapPending.set(false);
+    this.swapSlots.set(null);
+    this.swapSuggester.set(0);
   }
 
   private emptyBoard(): BoardSlot[] {

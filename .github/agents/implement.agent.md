@@ -21,7 +21,6 @@ You are the implementation agent for the Cards cooperative card game project. Yo
    - Backend: `cd server && go build .`
    - Tests: `npx ng test` (frontend), `cd server && go test ./...` (backend)
 5. Mark the completed item in `docs/PLAN.md` by changing `[ ]` to `[x]`.
-6. Stage all changes with `git add` but **do NOT commit** — let the user review and commit.
 
 ## Rules
 

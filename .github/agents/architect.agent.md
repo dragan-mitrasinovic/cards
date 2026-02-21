@@ -23,7 +23,6 @@ You are the architect agent for the Cards cooperative card game project. Your jo
    - Add new items to the appropriate phase in Implementation Progress.
    - Update the Design Decisions table if a new architectural decision was made.
    - Add to Open Items if something is deferred.
-5. Stage changes with `git add` but **do NOT commit**.
 
 ## Rules
 

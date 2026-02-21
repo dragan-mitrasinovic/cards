@@ -178,7 +178,7 @@ LOBBY (waiting for 2nd player)
 - [x] Board and hand rendering (frontend)
 
 ### Phase 3: Swap & Reveal
-- [ ] Swap phase logic (suggest, accept/reject, skip)
+- [x] Swap phase logic (suggest, accept/reject, skip)
 - [ ] Reveal phase (sequential flip animation)
 - [ ] Win/lose evaluation
 - [ ] Game over screen + rematch

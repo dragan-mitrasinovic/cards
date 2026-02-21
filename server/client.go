@@ -129,6 +129,12 @@ func (c *Client) handleMessage(raw []byte) {
 		c.handlePass()
 	case "peek":
 		c.handlePeek(raw)
+	case "suggest_swap":
+		c.handleSuggestSwap(raw)
+	case "skip_swap":
+		c.handleSkipSwap()
+	case "respond_swap":
+		c.handleRespondSwap(raw)
 	default:
 		c.SendMsg(newError("unknown message type: " + env.Type))
 	}
@@ -483,6 +489,158 @@ func (c *Client) handlePeek(raw []byte) {
 	}
 
 	c.SendMsg(PeekResultMsg{Type: "peek_result", SlotIndex: msg.SlotIndex, Card: *card})
+}
+
+func (c *Client) handleSuggestSwap(raw []byte) {
+	var msg SuggestSwapMsg
+	if err := json.Unmarshal(raw, &msg); err != nil {
+		c.SendMsg(newError("invalid suggest_swap message"))
+		return
+	}
+
+	if c.room == nil {
+		c.SendMsg(newError("no active game"))
+		return
+	}
+
+	c.room.mu.Lock()
+	game := c.room.Game
+	if game == nil {
+		c.room.mu.Unlock()
+		c.SendMsg(newError("no active game"))
+		return
+	}
+
+	if err := game.SuggestSwap(c.playerNumber, msg.SlotA, msg.SlotB); err != nil {
+		c.room.mu.Unlock()
+		c.SendMsg(newError(err.Error()))
+		return
+	}
+
+	slotA := game.SwapSlots[0]
+	slotB := game.SwapSlots[1]
+	p1 := c.room.Players[0]
+	p2 := c.room.Players[1]
+	c.room.mu.Unlock()
+
+	slog.Info("swap suggested", "player", c.name, "slotA", slotA, "slotB", slotB, "room", c.room.Code)
+
+	suggested := SwapSuggestedMsg{Type: "swap_suggested", SlotA: slotA, SlotB: slotB, ByPlayer: c.playerNumber}
+	if p1 != nil {
+		p1.SendMsg(suggested)
+	}
+	if p2 != nil {
+		p2.SendMsg(suggested)
+	}
+}
+
+func (c *Client) handleSkipSwap() {
+	if c.room == nil {
+		c.SendMsg(newError("no active game"))
+		return
+	}
+
+	c.room.mu.Lock()
+	game := c.room.Game
+	if game == nil {
+		c.room.mu.Unlock()
+		c.SendMsg(newError("no active game"))
+		return
+	}
+
+	if err := game.SkipSwap(c.playerNumber); err != nil {
+		c.room.mu.Unlock()
+		c.SendMsg(newError(err.Error()))
+		return
+	}
+
+	phase := game.Phase
+	currentTurn := game.CurrentTurn
+	p1 := c.room.Players[0]
+	p2 := c.room.Players[1]
+	c.room.mu.Unlock()
+
+	slog.Info("swap skipped", "player", c.name, "room", c.room.Code)
+
+	result := SwapResultMsg{Type: "swap_result", Accepted: false}
+	if p1 != nil {
+		p1.SendMsg(result)
+	}
+	if p2 != nil {
+		p2.SendMsg(result)
+	}
+
+	if phase == PhaseSwap {
+		prompt := SwapPromptMsg{Type: "swap_prompt", ByPlayer: currentTurn}
+		if p1 != nil {
+			p1.SendMsg(prompt)
+		}
+		if p2 != nil {
+			p2.SendMsg(prompt)
+		}
+	}
+	// If phase is reveal, the frontend will handle the transition
+}
+
+func (c *Client) handleRespondSwap(raw []byte) {
+	var msg RespondSwapMsg
+	if err := json.Unmarshal(raw, &msg); err != nil {
+		c.SendMsg(newError("invalid respond_swap message"))
+		return
+	}
+
+	if c.room == nil {
+		c.SendMsg(newError("no active game"))
+		return
+	}
+
+	c.room.mu.Lock()
+	game := c.room.Game
+	if game == nil {
+		c.room.mu.Unlock()
+		c.SendMsg(newError("no active game"))
+		return
+	}
+
+	slotA := game.SwapSlots[0]
+	slotB := game.SwapSlots[1]
+
+	if err := game.RespondSwap(c.playerNumber, msg.Accept); err != nil {
+		c.room.mu.Unlock()
+		c.SendMsg(newError(err.Error()))
+		return
+	}
+
+	phase := game.Phase
+	currentTurn := game.CurrentTurn
+	p1 := c.room.Players[0]
+	p2 := c.room.Players[1]
+	c.room.mu.Unlock()
+
+	slog.Info("swap response", "player", c.name, "accepted", msg.Accept, "room", c.room.Code)
+
+	result := SwapResultMsg{Type: "swap_result", Accepted: msg.Accept}
+	if msg.Accept {
+		result.SlotA = slotA
+		result.SlotB = slotB
+	}
+	if p1 != nil {
+		p1.SendMsg(result)
+	}
+	if p2 != nil {
+		p2.SendMsg(result)
+	}
+
+	if phase == PhaseSwap {
+		prompt := SwapPromptMsg{Type: "swap_prompt", ByPlayer: currentTurn}
+		if p1 != nil {
+			p1.SendMsg(prompt)
+		}
+		if p2 != nil {
+			p2.SendMsg(prompt)
+		}
+	}
+	// If phase is reveal, the frontend will handle the transition
 }
 
 // sendYourTurn sends a your_turn message to the player whose turn it is.

@@ -34,13 +34,12 @@ Run `git diff` on your own changes and review them using the criteria and severi
 ### Phase 3 — Finalize
 
 1. Mark the completed item in `docs/PLAN.md` by changing `[ ]` to `[x]`.
-2. Stage all changes with `git add` but **do NOT commit** — let the user review and commit.
 
 ### Phase 4 — Explain
 
 Provide the structured explanation defined in `explainer.agent.md`, with one addition:
 
-- **Review notes** — List any 🟡 or 🔵 issues you noticed but chose not to fix, with reasoning.
+- **Review notes** — List any 🟡 or 🔵 issues you noticed but chose not to fix, with reasoning. Omit this section if there are none.
 
 ## Rules
 

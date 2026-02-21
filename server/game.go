@@ -117,6 +117,12 @@ type Game struct {
 	CardsPlaced [2]int      // how many cards each player has placed
 	HandUsed    [2][7]bool  // which cards from each hand have been placed
 	Picks       [2]Preference // turn order preferences (index 0 = player 1)
+
+	// Swap phase state
+	SwapsCompleted int      // 0, 1, or 2
+	SwapPending    bool     // whether a swap suggestion is awaiting response
+	SwapSlots      [2]int   // the two slots in the pending suggestion
+	SwapSuggester  int      // player who made the pending suggestion (1 or 2)
 }
 
 // SetPick records a player's turn order preference. playerNumber is 1 or 2.
@@ -243,6 +249,91 @@ func (g *Game) Peek(playerNumber, slotIndex int) (*Card, error) {
 // AllCardsPlaced reports whether all 14 cards have been placed.
 func (g *Game) AllCardsPlaced() bool {
 	return g.CardsPlaced[0] == 7 && g.CardsPlaced[1] == 7
+}
+
+// SuggestSwap records a swap suggestion from the current swap player.
+// slotA and slotB must be adjacent occupied slots.
+func (g *Game) SuggestSwap(playerNumber, slotA, slotB int) error {
+	if g.Phase != PhaseSwap {
+		return fmt.Errorf("not in swap phase")
+	}
+	if g.CurrentTurn != playerNumber {
+		return fmt.Errorf("not your turn to suggest a swap")
+	}
+	if g.SwapPending {
+		return fmt.Errorf("a swap is already pending")
+	}
+	if slotA < 0 || slotA >= BoardSize || slotB < 0 || slotB >= BoardSize {
+		return fmt.Errorf("invalid slot index")
+	}
+	// Normalize so slotA < slotB
+	if slotA > slotB {
+		slotA, slotB = slotB, slotA
+	}
+	if slotB-slotA != 1 {
+		return fmt.Errorf("slots must be adjacent")
+	}
+	if g.Board[slotA] == nil || g.Board[slotB] == nil {
+		return fmt.Errorf("both slots must be occupied")
+	}
+
+	g.SwapPending = true
+	g.SwapSlots = [2]int{slotA, slotB}
+	g.SwapSuggester = playerNumber
+	return nil
+}
+
+// RespondSwap handles the other player's response to a pending swap suggestion.
+func (g *Game) RespondSwap(playerNumber int, accept bool) error {
+	if g.Phase != PhaseSwap {
+		return fmt.Errorf("not in swap phase")
+	}
+	if !g.SwapPending {
+		return fmt.Errorf("no swap pending")
+	}
+	if playerNumber == g.SwapSuggester {
+		return fmt.Errorf("cannot respond to your own swap")
+	}
+
+	if accept {
+		slotA, slotB := g.SwapSlots[0], g.SwapSlots[1]
+		g.Board[slotA], g.Board[slotB] = g.Board[slotB], g.Board[slotA]
+		g.BoardOwner[slotA], g.BoardOwner[slotB] = g.BoardOwner[slotB], g.BoardOwner[slotA]
+	}
+
+	g.SwapPending = false
+	g.advanceSwap()
+	return nil
+}
+
+// SkipSwap skips the current player's swap opportunity.
+func (g *Game) SkipSwap(playerNumber int) error {
+	if g.Phase != PhaseSwap {
+		return fmt.Errorf("not in swap phase")
+	}
+	if g.CurrentTurn != playerNumber {
+		return fmt.Errorf("not your turn to suggest a swap")
+	}
+	if g.SwapPending {
+		return fmt.Errorf("a swap is already pending")
+	}
+
+	g.advanceSwap()
+	return nil
+}
+
+// advanceSwap moves to the next swap turn or transitions to reveal phase.
+func (g *Game) advanceSwap() {
+	g.SwapsCompleted++
+	if g.SwapsCompleted >= 2 {
+		g.Phase = PhaseReveal
+		return
+	}
+	if g.CurrentTurn == 1 {
+		g.CurrentTurn = 2
+	} else {
+		g.CurrentTurn = 1
+	}
 }
 
 // advanceTurn switches the current turn to the other player,

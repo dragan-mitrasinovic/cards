@@ -117,6 +117,75 @@
           />
         </div>
       </div>
+    } @else if (gameState.phase() === 'swap') {
+      <div class="swap-phase">
+        <!-- Player bar -->
+        <div class="flex items-center justify-between px-4 py-2 bg-gray-50 rounded-lg mb-4">
+          <div class="flex items-center gap-4">
+            <span class="font-semibold">{{ gameState.playerName() }}</span>
+            <span class="text-gray-400">&amp;</span>
+            <span class="font-semibold">{{ gameState.partnerName() }}</span>
+          </div>
+          <div class="flex items-center gap-4 text-sm text-gray-500">
+            <span class="text-purple-600 font-medium">Swap Phase</span>
+          </div>
+        </div>
+
+        @if (gameState.swapPending()) {
+          <!-- A swap has been suggested, waiting for response -->
+          <div class="flex flex-col items-center gap-4 mb-4 p-4 bg-purple-50 rounded-lg border border-purple-200">
+            @if (gameState.swapSuggester() === gameState.playerNumber()) {
+              <p class="text-purple-700 font-medium">You suggested swapping slots {{ (gameState.swapSlots()?.[0] ?? 0) + 1 }} and {{ (gameState.swapSlots()?.[1] ?? 0) + 1 }}</p>
+              <p class="text-sm text-gray-500">Waiting for {{ gameState.partnerName() }} to respond…</p>
+            } @else {
+              <p class="text-purple-700 font-medium">{{ gameState.partnerName() }} wants to swap slots {{ (gameState.swapSlots()?.[0] ?? 0) + 1 }} and {{ (gameState.swapSlots()?.[1] ?? 0) + 1 }}</p>
+              <div class="flex gap-3">
+                <button
+                  (click)="respondSwap(true)"
+                  class="px-4 py-2 bg-green-500 text-white rounded-md font-medium hover:bg-green-600"
+                >
+                  Accept
+                </button>
+                <button
+                  (click)="respondSwap(false)"
+                  class="px-4 py-2 bg-red-500 text-white rounded-md font-medium hover:bg-red-600"
+                >
+                  Reject
+                </button>
+              </div>
+            }
+          </div>
+        } @else if (gameState.isMyTurn()) {
+          <!-- My turn to suggest a swap -->
+          <div class="flex flex-col items-center gap-2 mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <p class="text-blue-700 font-medium">Your turn to suggest a swap</p>
+            <p class="text-sm text-gray-500">Click two adjacent cards on the board, or skip</p>
+            @if (selectedSwapSlots().length === 1) {
+              <p class="text-sm text-blue-600">Selected slot {{ selectedSwapSlots()[0] + 1 }} — now click an adjacent card</p>
+            }
+            <button
+              (click)="skipSwap()"
+              class="mt-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-md font-medium hover:bg-gray-300"
+            >
+              Skip Swap
+            </button>
+          </div>
+        } @else {
+          <!-- Waiting for partner to suggest -->
+          <div class="flex flex-col items-center gap-2 mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <p class="text-gray-600 font-medium">Waiting for {{ gameState.partnerName() }} to suggest a swap…</p>
+          </div>
+        }
+
+        <!-- Board -->
+        <app-board
+          [selectedCardIndex]="-1"
+          [swapMode]="gameState.isMyTurn() && !gameState.swapPending()"
+          [selectedSwapSlots]="selectedSwapSlots()"
+          (slotPlace)="onSwapSlotClick($event)"
+          (slotPeek)="onSwapSlotClick($event)"
+        />
+      </div>
     } @else {
       <div class="flex justify-center items-center min-h-[300px] border-2 border-dashed border-gray-300 rounded-lg">
         <div class="text-center">
@@ -128,7 +197,7 @@
               <span class="text-gray-400 mx-2">&amp;</span>
               <span class="font-semibold">{{ gameState.partnerName() }}</span>
             </p>
-            <p class="text-sm text-gray-400 mt-2">Game starting soon…</p>
+            <p class="text-sm text-gray-400 mt-2">Game in progress…</p>
           }
         </div>
       </div>

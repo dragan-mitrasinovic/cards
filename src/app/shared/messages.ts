@@ -46,7 +46,22 @@ export interface PeekMessage extends BaseMessage {
   slotIndex: number;
 }
 
-export type ClientMessage = EchoMessage | CreateRoomMessage | JoinRoomMessage | TurnOrderPickMessage | PlaceCardMessage | PassMessage | PeekMessage;
+export interface SuggestSwapMessage extends BaseMessage {
+  type: 'suggest_swap';
+  slotA: number;
+  slotB: number;
+}
+
+export interface SkipSwapMessage extends BaseMessage {
+  type: 'skip_swap';
+}
+
+export interface RespondSwapMessage extends BaseMessage {
+  type: 'respond_swap';
+  accept: boolean;
+}
+
+export type ClientMessage = EchoMessage | CreateRoomMessage | JoinRoomMessage | TurnOrderPickMessage | PlaceCardMessage | PassMessage | PeekMessage | SuggestSwapMessage | SkipSwapMessage | RespondSwapMessage;
 
 // --- Server → Client messages ---
 
@@ -122,6 +137,20 @@ export interface SwapPromptMessage extends BaseMessage {
   byPlayer: number;
 }
 
+export interface SwapSuggestedMessage extends BaseMessage {
+  type: 'swap_suggested';
+  slotA: number;
+  slotB: number;
+  byPlayer: number;
+}
+
+export interface SwapResultMessage extends BaseMessage {
+  type: 'swap_result';
+  accepted: boolean;
+  slotA?: number;
+  slotB?: number;
+}
+
 export type ServerMessage =
   | EchoResponseMessage
   | ErrorMessage
@@ -135,4 +164,6 @@ export type ServerMessage =
   | CardPlacedMessage
   | PlayerPassedMessage
   | PeekResultMessage
-  | SwapPromptMessage;
+  | SwapPromptMessage
+  | SwapSuggestedMessage
+  | SwapResultMessage;

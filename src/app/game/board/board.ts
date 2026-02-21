@@ -15,6 +15,12 @@ export class BoardComponent {
   /** Index of the card selected from the player's hand, or -1 if none. */
   readonly selectedCardIndex = input(-1);
 
+  /** Whether the board is in swap selection mode. */
+  readonly swapMode = input(false);
+
+  /** Indices of slots selected for swapping. */
+  readonly selectedSwapSlots = input<number[]>([]);
+
   /** Emitted when a player clicks an empty slot to place a card. */
   readonly slotPlace = output<number>();
 
@@ -26,11 +32,22 @@ export class BoardComponent {
   readonly isMyTurn = computed(() => this.gameState.isMyTurn());
 
   onSlotClick(index: number): void {
+    if (this.swapMode()) {
+      const slot = this.board()[index];
+      if (slot.occupied) {
+        this.slotPlace.emit(index);
+      }
+      return;
+    }
     const slot = this.board()[index];
     if (!slot.occupied && this.selectedCardIndex() >= 0 && this.isMyTurn()) {
       this.slotPlace.emit(index);
     } else if (slot.occupied && slot.byPlayer === this.playerNumber()) {
       this.slotPeek.emit(index);
     }
+  }
+
+  isSwapSelected(index: number): boolean {
+    return this.selectedSwapSlots().includes(index);
   }
 }

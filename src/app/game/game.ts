@@ -5,7 +5,7 @@ import { map, Subscription } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { WebSocketService } from '../shared/websocket.service';
 import { GameStateService } from '../shared/game-state.service';
-import { PlayerJoinedMessage, PlayerDisconnectedMessage, ErrorMessage, TurnOrderResultMessage, GameStartMessage, CardPlacedMessage, PlayerPassedMessage, PeekResultMessage, SwapPromptMessage } from '../shared/messages';
+import { PlayerJoinedMessage, PlayerDisconnectedMessage, ErrorMessage, TurnOrderResultMessage, GameStartMessage, CardPlacedMessage, PlayerPassedMessage, PeekResultMessage, SwapPromptMessage, SwapSuggestedMessage, SwapResultMessage } from '../shared/messages';
 import { TurnOrderPickComponent } from './turn-order-pick/turn-order-pick';
 import { BoardComponent } from './board/board';
 import { HandComponent } from './hand/hand';
@@ -30,6 +30,7 @@ export class GameComponent implements OnInit, OnDestroy {
   readonly joinError = signal('');
   readonly partnerDisconnected = signal(false);
   readonly selectedCardIndex = signal(-1);
+  readonly selectedSwapSlots = signal<number[]>([]);
   joinName = '';
 
   private messagesSub?: Subscription;
@@ -123,6 +124,32 @@ export class GameComponent implements OnInit, OnDestroy {
           this.gameState.phase.set('swap');
           this.gameState.currentTurn.set(swap.byPlayer);
           this.gameState.isMyTurn.set(swap.byPlayer === this.gameState.playerNumber());
+          this.gameState.swapPending.set(false);
+          this.gameState.swapSlots.set(null);
+          this.gameState.swapSuggester.set(0);
+          this.selectedSwapSlots.set([]);
+          break;
+        }
+        case 'swap_suggested': {
+          const suggested = msg as SwapSuggestedMessage;
+          this.gameState.swapPending.set(true);
+          this.gameState.swapSlots.set([suggested.slotA, suggested.slotB]);
+          this.gameState.swapSuggester.set(suggested.byPlayer);
+          break;
+        }
+        case 'swap_result': {
+          const swapResult = msg as SwapResultMessage;
+          if (swapResult.accepted && swapResult.slotA !== undefined && swapResult.slotB !== undefined) {
+            const board = [...this.gameState.board()];
+            const temp = board[swapResult.slotA];
+            board[swapResult.slotA] = board[swapResult.slotB];
+            board[swapResult.slotB] = temp;
+            this.gameState.board.set(board);
+          }
+          this.gameState.swapPending.set(false);
+          this.gameState.swapSlots.set(null);
+          this.gameState.swapSuggester.set(0);
+          this.selectedSwapSlots.set([]);
           break;
         }
         case 'error': {
@@ -180,5 +207,36 @@ export class GameComponent implements OnInit, OnDestroy {
 
   peek(slotIndex: number): void {
     this.ws.send({ type: 'peek', slotIndex });
+  }
+
+  onSwapSlotClick(slotIndex: number): void {
+    const slot = this.gameState.board()[slotIndex];
+    if (!slot.occupied) return;
+
+    const current = this.selectedSwapSlots();
+    if (current.length === 0) {
+      this.selectedSwapSlots.set([slotIndex]);
+    } else if (current.length === 1) {
+      if (current[0] === slotIndex) {
+        this.selectedSwapSlots.set([]);
+      } else if (Math.abs(current[0] - slotIndex) === 1) {
+        this.suggestSwap(current[0], slotIndex);
+      } else {
+        this.selectedSwapSlots.set([slotIndex]);
+      }
+    }
+  }
+
+  suggestSwap(slotA: number, slotB: number): void {
+    this.ws.send({ type: 'suggest_swap', slotA, slotB });
+    this.selectedSwapSlots.set([]);
+  }
+
+  skipSwap(): void {
+    this.ws.send({ type: 'skip_swap' });
+  }
+
+  respondSwap(accept: boolean): void {
+    this.ws.send({ type: 'respond_swap', accept });
   }
 }
