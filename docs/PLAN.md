@@ -61,7 +61,7 @@ LOBBY (waiting for 2nd player)
   → TURN_ORDER_CONFLICT (if both want/don't want first — re-pick, transparent)
   → PLACEMENT_PHASE (alternating turns, 7 cards each)
   → SWAP_PHASE (first player suggests → accept/reject → second player's turn)
-  → REVEAL_PHASE (sequential reveal, lowest to highest)
+  → REVEAL_PHASE (sequential reveal, left to right)
   → GAME_OVER (win/lose)
   → LOBBY or REMATCH
 ```
@@ -158,7 +158,7 @@ LOBBY (waiting for 2nd player)
 4. **Turn Order**: Both pick preference, see each other's choice, re-pick if conflict
 5. **Placement**: Alternate turns placing cards face-down. Can peek own cards. 1 pass each.
 6. **Swap**: First player suggests swap (2 adjacent) or skips → other accepts/rejects → second player's turn
-7. **Reveal**: Cards flip one by one, lowest to highest
+7. **Reveal**: Cards flip one by one, left to right
 8. **Result**: WIN or LOSE → "Play Again" or "Leave"
 
 ---

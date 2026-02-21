@@ -207,7 +207,7 @@
         <div class="flex flex-col items-center gap-2 mb-4 p-4 bg-amber-50 rounded-lg border border-amber-200">
           @if (gameState.revealedCount() < gameState.totalRevealCards()) {
             <p class="text-amber-700 font-medium">Revealing cards…</p>
-            <p class="text-sm text-gray-500">Cards are revealed in sorted order, lowest to highest</p>
+            <p class="text-sm text-gray-500">Cards are revealed from left to right</p>
           } @else {
             <p class="text-amber-700 font-medium">All cards revealed!</p>
           }

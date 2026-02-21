@@ -85,7 +85,7 @@ After all cards are placed and before the reveal:
 
 ### Reveal Phase
 
-- After the swap phase, cards are revealed **one by one**, starting from the card with the **lowest value in the global sort order** and progressing to the highest.
+- After the swap phase, cards are revealed **one by one**, from **left to right** across the board.
 - Each card flips face-up in its slot on the board, one at a time, allowing for dramatic reveal animations.
 - The empty slot is skipped/ignored.
 - Functionally this is equivalent to revealing all at once — the sequential reveal is purely for presentation.

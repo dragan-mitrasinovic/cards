@@ -342,19 +342,13 @@ type RevealEntry struct {
 	Card      Card `json:"card"`
 }
 
-// RevealOrder returns the placed cards sorted by global sort order (lowest first).
+// RevealOrder returns the placed cards in left-to-right board order (by slot index).
 // Each entry contains the slot index and the card at that slot.
 func (g *Game) RevealOrder() []RevealEntry {
 	entries := make([]RevealEntry, 0, 14)
 	for i, card := range g.Board {
 		if card != nil {
 			entries = append(entries, RevealEntry{SlotIndex: i, Card: *card})
-		}
-	}
-	// Sort by global sort index (ascending)
-	for i := 1; i < len(entries); i++ {
-		for j := i; j > 0 && entries[j].Card.SortIndex() < entries[j-1].Card.SortIndex(); j-- {
-			entries[j], entries[j-1] = entries[j-1], entries[j]
 		}
 	}
 	return entries
