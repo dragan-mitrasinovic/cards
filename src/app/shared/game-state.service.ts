@@ -44,6 +44,9 @@ export class GameStateService {
   readonly revealedCount = signal(0);
   readonly totalRevealCards = signal(0);
 
+  // Game result state
+  readonly gameResult = signal<{ win: boolean } | null>(null);
+
   reset(): void {
     this.playerName.set('');
     this.playerNumber.set(0);
@@ -63,6 +66,7 @@ export class GameStateService {
     this.swapSuggester.set(0);
     this.revealedCount.set(0);
     this.totalRevealCards.set(0);
+    this.gameResult.set(null);
   }
 
   private emptyBoard(): BoardSlot[] {

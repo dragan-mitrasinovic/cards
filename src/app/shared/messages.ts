@@ -158,6 +158,12 @@ export interface RevealCardMessage extends BaseMessage {
   delay: number;
 }
 
+export interface GameResultMessage extends BaseMessage {
+  type: 'game_result';
+  win: boolean;
+  board: { slotIndex: number; card: Card }[];
+}
+
 export type ServerMessage =
   | EchoResponseMessage
   | ErrorMessage
@@ -174,4 +180,5 @@ export type ServerMessage =
   | SwapPromptMessage
   | SwapSuggestedMessage
   | SwapResultMessage
-  | RevealCardMessage;
+  | RevealCardMessage
+  | GameResultMessage;

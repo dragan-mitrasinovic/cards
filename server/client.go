@@ -557,8 +557,11 @@ func (c *Client) handleSkipSwap() {
 	phase := game.Phase
 	currentTurn := game.CurrentTurn
 	var revealOrder []RevealEntry
+	var win bool
 	if phase == PhaseReveal {
 		revealOrder = game.RevealOrder()
+		win = game.CheckWin()
+		game.Phase = PhaseGameOver
 	}
 	p1 := c.room.Players[0]
 	p2 := c.room.Players[1]
@@ -583,7 +586,7 @@ func (c *Client) handleSkipSwap() {
 			p2.SendMsg(prompt)
 		}
 	} else if phase == PhaseReveal {
-		c.sendRevealCards(p1, p2, revealOrder)
+		c.sendRevealCards(p1, p2, revealOrder, win)
 	}
 }
 
@@ -619,8 +622,11 @@ func (c *Client) handleRespondSwap(raw []byte) {
 	phase := game.Phase
 	currentTurn := game.CurrentTurn
 	var revealOrder []RevealEntry
+	var win bool
 	if phase == PhaseReveal {
 		revealOrder = game.RevealOrder()
+		win = game.CheckWin()
+		game.Phase = PhaseGameOver
 	}
 	p1 := c.room.Players[0]
 	p2 := c.room.Players[1]
@@ -649,7 +655,7 @@ func (c *Client) handleRespondSwap(raw []byte) {
 			p2.SendMsg(prompt)
 		}
 	} else if phase == PhaseReveal {
-		c.sendRevealCards(p1, p2, revealOrder)
+		c.sendRevealCards(p1, p2, revealOrder, win)
 	}
 }
 
@@ -663,8 +669,9 @@ func (c *Client) sendYourTurn(currentTurn int, p1, p2 *Client) {
 	}
 }
 
-// sendRevealCards sends reveal_card messages to both players with staggered delays.
-func (c *Client) sendRevealCards(p1, p2 *Client, order []RevealEntry) {
+// sendRevealCards sends reveal_card messages to both players with staggered delays,
+// followed by the game_result message.
+func (c *Client) sendRevealCards(p1, p2 *Client, order []RevealEntry, win bool) {
 	const delayPerCard = 800 // ms between reveals
 	for i, entry := range order {
 		msg := RevealCardMsg{
@@ -679,6 +686,24 @@ func (c *Client) sendRevealCards(p1, p2 *Client, order []RevealEntry) {
 		if p2 != nil {
 			p2.SendMsg(msg)
 		}
+	}
+
+	// Build board summary for game_result
+	boardCards := make([]BoardCard, 0, len(order))
+	for _, entry := range order {
+		boardCards = append(boardCards, BoardCard{SlotIndex: entry.SlotIndex, Card: entry.Card})
+	}
+	result := GameResultMsg{
+		Type:  "game_result",
+		Win:   win,
+		Board: boardCards,
+	}
+	// Client handles timing based on reveal_card delays
+	if p1 != nil {
+		p1.SendMsg(result)
+	}
+	if p2 != nil {
+		p2.SendMsg(result)
 	}
 }
 

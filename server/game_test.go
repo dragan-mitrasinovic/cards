@@ -703,3 +703,93 @@ func TestRevealOrder(t *testing.T) {
 		}
 	}
 }
+
+func TestCheckWin(t *testing.T) {
+	t.Run("correctly sorted board wins", func(t *testing.T) {
+		g := &Game{}
+		// Place cards in perfect sorted order: H1..H7 in slots 0..6, S1..S7 in slots 7..13
+		cards := []Card{
+			{Hearts, 1}, {Hearts, 2}, {Hearts, 3}, {Hearts, 4},
+			{Hearts, 5}, {Hearts, 6}, {Hearts, 7},
+			{Spades, 1}, {Spades, 2}, {Spades, 3}, {Spades, 4},
+			{Spades, 5}, {Spades, 6}, {Spades, 7},
+		}
+		for i, c := range cards {
+			card := c
+			g.Board[i] = &card
+		}
+		if !g.CheckWin() {
+			t.Error("expected win for correctly sorted board")
+		}
+	})
+
+	t.Run("incorrectly sorted board loses", func(t *testing.T) {
+		g := &Game{}
+		// Place cards out of order
+		cards := []Card{
+			{Hearts, 2}, {Hearts, 1}, {Hearts, 3}, {Hearts, 4},
+			{Hearts, 5}, {Hearts, 6}, {Hearts, 7},
+			{Spades, 1}, {Spades, 2}, {Spades, 3}, {Spades, 4},
+			{Spades, 5}, {Spades, 6}, {Spades, 7},
+		}
+		for i, c := range cards {
+			card := c
+			g.Board[i] = &card
+		}
+		if g.CheckWin() {
+			t.Error("expected loss for incorrectly sorted board")
+		}
+	})
+
+	t.Run("skips empty slots", func(t *testing.T) {
+		g := &Game{}
+		// Place 14 cards with one empty slot (slot 7)
+		cards := []Card{
+			{Hearts, 1}, {Hearts, 2}, {Hearts, 3}, {Hearts, 4},
+			{Hearts, 5}, {Hearts, 6}, {Hearts, 7},
+			// slot 7 is empty
+			{Spades, 1}, {Spades, 2}, {Spades, 3}, {Spades, 4},
+			{Spades, 5}, {Spades, 6}, {Spades, 7},
+		}
+		for i := 0; i < 7; i++ {
+			card := cards[i]
+			g.Board[i] = &card
+		}
+		for i := 7; i < 14; i++ {
+			card := cards[i]
+			g.Board[i+1] = &card
+		}
+		if !g.CheckWin() {
+			t.Error("expected win when skipping empty slot")
+		}
+	})
+
+	t.Run("empty slot between out-of-order cards still loses", func(t *testing.T) {
+		g := &Game{}
+		// S1 in slot 0, empty slot 1, H1 in slot 2 — S1 > H1 in sort order
+		s1 := Card{Spades, 1}
+		h1 := Card{Hearts, 1}
+		g.Board[0] = &s1
+		// slot 1 empty
+		g.Board[2] = &h1
+		if g.CheckWin() {
+			t.Error("expected loss when cards are out of order across empty slot")
+		}
+	})
+
+	t.Run("single card always wins", func(t *testing.T) {
+		g := &Game{}
+		card := Card{Diamonds, 5}
+		g.Board[7] = &card
+		if !g.CheckWin() {
+			t.Error("expected win with single card")
+		}
+	})
+
+	t.Run("empty board wins", func(t *testing.T) {
+		g := &Game{}
+		if !g.CheckWin() {
+			t.Error("expected win with empty board")
+		}
+	})
+}

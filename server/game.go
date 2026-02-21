@@ -360,6 +360,24 @@ func (g *Game) RevealOrder() []RevealEntry {
 	return entries
 }
 
+// CheckWin evaluates whether the placed cards are in correct relative sorted order.
+// Cards are read left to right, skipping empty slots. Returns true if every card's
+// sort index is greater than the previous card's sort index.
+func (g *Game) CheckWin() bool {
+	prev := -1
+	for _, card := range g.Board {
+		if card == nil {
+			continue
+		}
+		idx := card.SortIndex()
+		if idx <= prev {
+			return false
+		}
+		prev = idx
+	}
+	return true
+}
+
 // advanceTurn switches the current turn to the other player,
 // and transitions to the swap phase if all cards are placed.
 func (g *Game) advanceTurn() {

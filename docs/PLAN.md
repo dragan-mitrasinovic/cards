@@ -180,7 +180,7 @@ LOBBY (waiting for 2nd player)
 ### Phase 3: Swap & Reveal
 - [x] Swap phase logic (suggest, accept/reject, skip)
 - [x] Reveal phase (sequential flip animation)
-- [ ] Win/lose evaluation
+- [x] Win/lose evaluation
 - [ ] Game over screen + rematch
 
 ### Phase 4: Polish & UX

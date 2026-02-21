@@ -181,3 +181,16 @@ type RevealCardMsg struct {
 	Card      Card   `json:"card"`
 	Delay     int    `json:"delay"` // cumulative ms from reveal start
 }
+
+// BoardCard represents a card on the board for the game result.
+type BoardCard struct {
+	SlotIndex int  `json:"slotIndex"`
+	Card      Card `json:"card"`
+}
+
+// GameResultMsg notifies both players of the final game result.
+type GameResultMsg struct {
+	Type  string      `json:"type"`
+	Win   bool        `json:"win"`
+	Board []BoardCard `json:"board"`
+}

@@ -5,7 +5,7 @@ import { map, Subscription } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { WebSocketService } from '../shared/websocket.service';
 import { GameStateService } from '../shared/game-state.service';
-import { PlayerJoinedMessage, PlayerDisconnectedMessage, ErrorMessage, TurnOrderResultMessage, GameStartMessage, CardPlacedMessage, PlayerPassedMessage, PeekResultMessage, SwapPromptMessage, SwapSuggestedMessage, SwapResultMessage, RevealCardMessage } from '../shared/messages';
+import { PlayerJoinedMessage, PlayerDisconnectedMessage, ErrorMessage, TurnOrderResultMessage, GameStartMessage, CardPlacedMessage, PlayerPassedMessage, PeekResultMessage, SwapPromptMessage, SwapSuggestedMessage, SwapResultMessage, RevealCardMessage, GameResultMessage } from '../shared/messages';
 import { TurnOrderPickComponent } from './turn-order-pick/turn-order-pick';
 import { BoardComponent } from './board/board';
 import { HandComponent } from './hand/hand';
@@ -170,6 +170,17 @@ export class GameComponent implements OnInit, OnDestroy {
             this.gameState.board.set(board);
             this.gameState.revealedCount.update(n => n + 1);
           }, reveal.delay);
+          this.revealTimeouts.push(timeout);
+          break;
+        }
+        case 'game_result': {
+          const gameResult = msg as GameResultMessage;
+          this.gameState.gameResult.set({ win: gameResult.win });
+          // Transition to game_over after all reveals complete
+          const totalDelay = this.gameState.totalRevealCards() * 800;
+          const timeout = setTimeout(() => {
+            this.gameState.phase.set('game_over');
+          }, totalDelay);
           this.revealTimeouts.push(timeout);
           break;
         }
