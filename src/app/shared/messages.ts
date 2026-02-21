@@ -31,7 +31,22 @@ export interface TurnOrderPickMessage extends BaseMessage {
   preference: 'first' | 'neutral' | 'no_first';
 }
 
-export type ClientMessage = EchoMessage | CreateRoomMessage | JoinRoomMessage | TurnOrderPickMessage;
+export interface PlaceCardMessage extends BaseMessage {
+  type: 'place_card';
+  cardIndex: number;
+  slotIndex: number;
+}
+
+export interface PassMessage extends BaseMessage {
+  type: 'pass';
+}
+
+export interface PeekMessage extends BaseMessage {
+  type: 'peek';
+  slotIndex: number;
+}
+
+export type ClientMessage = EchoMessage | CreateRoomMessage | JoinRoomMessage | TurnOrderPickMessage | PlaceCardMessage | PassMessage | PeekMessage;
 
 // --- Server → Client messages ---
 
@@ -81,6 +96,32 @@ export interface GameStartMessage extends BaseMessage {
   firstPlayer: number;
 }
 
+export interface YourTurnMessage extends BaseMessage {
+  type: 'your_turn';
+}
+
+export interface CardPlacedMessage extends BaseMessage {
+  type: 'card_placed';
+  slotIndex: number;
+  byPlayer: number;
+}
+
+export interface PlayerPassedMessage extends BaseMessage {
+  type: 'player_passed';
+  byPlayer: number;
+}
+
+export interface PeekResultMessage extends BaseMessage {
+  type: 'peek_result';
+  slotIndex: number;
+  card: Card;
+}
+
+export interface SwapPromptMessage extends BaseMessage {
+  type: 'swap_prompt';
+  byPlayer: number;
+}
+
 export type ServerMessage =
   | EchoResponseMessage
   | ErrorMessage
@@ -89,4 +130,9 @@ export type ServerMessage =
   | PlayerDisconnectedMessage
   | TurnOrderPromptMessage
   | TurnOrderResultMessage
-  | GameStartMessage;
+  | GameStartMessage
+  | YourTurnMessage
+  | CardPlacedMessage
+  | PlayerPassedMessage
+  | PeekResultMessage
+  | SwapPromptMessage;

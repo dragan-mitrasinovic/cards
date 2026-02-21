@@ -110,9 +110,12 @@ type Game struct {
 	Phase       Phase
 	Hands       [2][7]Card
 	Board       [BoardSize]*Card
-	FirstPlayer int // 1 or 2; set after turn order resolution
-	CurrentTurn int // 1 or 2
+	BoardOwner  [BoardSize]int // 0 = empty, 1 or 2 = player who placed
+	FirstPlayer int            // 1 or 2; set after turn order resolution
+	CurrentTurn int            // 1 or 2
 	PassUsed    [2]bool
+	CardsPlaced [2]int      // how many cards each player has placed
+	HandUsed    [2][7]bool  // which cards from each hand have been placed
 	Picks       [2]Preference // turn order preferences (index 0 = player 1)
 }
 
@@ -169,4 +172,90 @@ func NewGame() (*Game, error) {
 		Phase: PhaseTurnOrderPick,
 		Hands: [2][7]Card{hand1, hand2},
 	}, nil
+}
+
+// PlaceCard places a card from a player's hand onto the board.
+// playerNumber is 1 or 2, cardIndex is 0–6, slotIndex is 0–14.
+func (g *Game) PlaceCard(playerNumber, cardIndex, slotIndex int) error {
+	if g.Phase != PhasePlacement {
+		return fmt.Errorf("not in placement phase")
+	}
+	if g.CurrentTurn != playerNumber {
+		return fmt.Errorf("not your turn")
+	}
+	idx := playerNumber - 1
+	if cardIndex < 0 || cardIndex >= 7 {
+		return fmt.Errorf("invalid card index")
+	}
+	if g.HandUsed[idx][cardIndex] {
+		return fmt.Errorf("card already placed")
+	}
+	if slotIndex < 0 || slotIndex >= BoardSize {
+		return fmt.Errorf("invalid slot index")
+	}
+	if g.Board[slotIndex] != nil {
+		return fmt.Errorf("slot already occupied")
+	}
+
+	card := g.Hands[idx][cardIndex]
+	g.Board[slotIndex] = &card
+	g.BoardOwner[slotIndex] = playerNumber
+	g.HandUsed[idx][cardIndex] = true
+	g.CardsPlaced[idx]++
+	g.advanceTurn()
+	return nil
+}
+
+// UsePass records a player using their single pass.
+func (g *Game) UsePass(playerNumber int) error {
+	if g.Phase != PhasePlacement {
+		return fmt.Errorf("not in placement phase")
+	}
+	if g.CurrentTurn != playerNumber {
+		return fmt.Errorf("not your turn")
+	}
+	idx := playerNumber - 1
+	if g.PassUsed[idx] {
+		return fmt.Errorf("pass already used")
+	}
+	g.PassUsed[idx] = true
+	g.advanceTurn()
+	return nil
+}
+
+// Peek returns the card at a slot if the requesting player owns it.
+func (g *Game) Peek(playerNumber, slotIndex int) (*Card, error) {
+	if g.Phase != PhasePlacement {
+		return nil, fmt.Errorf("not in placement phase")
+	}
+	if slotIndex < 0 || slotIndex >= BoardSize {
+		return nil, fmt.Errorf("invalid slot index")
+	}
+	if g.Board[slotIndex] == nil {
+		return nil, fmt.Errorf("slot is empty")
+	}
+	if g.BoardOwner[slotIndex] != playerNumber {
+		return nil, fmt.Errorf("not your card")
+	}
+	return g.Board[slotIndex], nil
+}
+
+// AllCardsPlaced reports whether all 14 cards have been placed.
+func (g *Game) AllCardsPlaced() bool {
+	return g.CardsPlaced[0] == 7 && g.CardsPlaced[1] == 7
+}
+
+// advanceTurn switches the current turn to the other player,
+// and transitions to the swap phase if all cards are placed.
+func (g *Game) advanceTurn() {
+	if g.AllCardsPlaced() {
+		g.Phase = PhaseSwap
+		g.CurrentTurn = g.FirstPlayer
+		return
+	}
+	if g.CurrentTurn == 1 {
+		g.CurrentTurn = 2
+	} else {
+		g.CurrentTurn = 1
+	}
 }

@@ -87,3 +87,49 @@ type GameStartMsg struct {
 	Hand        []Card `json:"hand"`
 	FirstPlayer int    `json:"firstPlayer"`
 }
+
+// --- Placement phase messages ---
+
+// PlaceCardMsg is sent by a player to place a card on the board.
+type PlaceCardMsg struct {
+	Type      string `json:"type"`
+	CardIndex int    `json:"cardIndex"`
+	SlotIndex int    `json:"slotIndex"`
+}
+
+// PassMsg is sent by a player to use their single pass.
+type PassMsg struct {
+	Type string `json:"type"`
+}
+
+// PeekMsg is sent by a player to peek at one of their placed cards.
+type PeekMsg struct {
+	Type      string `json:"type"`
+	SlotIndex int    `json:"slotIndex"`
+}
+
+// CardPlacedMsg notifies both players that a card was placed (face-down).
+type CardPlacedMsg struct {
+	Type      string `json:"type"`
+	SlotIndex int    `json:"slotIndex"`
+	ByPlayer  int    `json:"byPlayer"`
+}
+
+// PlayerPassedMsg notifies both players that a player used their pass.
+type PlayerPassedMsg struct {
+	Type     string `json:"type"`
+	ByPlayer int    `json:"byPlayer"`
+}
+
+// PeekResultMsg is sent to the requesting player with the card value.
+type PeekResultMsg struct {
+	Type      string `json:"type"`
+	SlotIndex int    `json:"slotIndex"`
+	Card      Card   `json:"card"`
+}
+
+// SwapPromptMsg notifies a player that it is their turn to suggest a swap.
+type SwapPromptMsg struct {
+	Type     string `json:"type"`
+	ByPlayer int    `json:"byPlayer"`
+}

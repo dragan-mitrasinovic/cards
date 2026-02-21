@@ -123,6 +123,12 @@ func (c *Client) handleMessage(raw []byte) {
 		c.handleJoinRoom(raw)
 	case "turn_order_pick":
 		c.handleTurnOrderPick(raw)
+	case "place_card":
+		c.handlePlaceCard(raw)
+	case "pass":
+		c.handlePass()
+	case "peek":
+		c.handlePeek(raw)
 	default:
 		c.SendMsg(newError("unknown message type: " + env.Type))
 	}
@@ -347,6 +353,145 @@ func (c *Client) handleTurnOrderPick(raw []byte) {
 	}
 	if p2 != nil {
 		p2.SendMsg(GameStartMsg{Type: "game_start", Hand: hand2, FirstPlayer: firstPlayer})
+	}
+
+	// Prompt the first player for their turn
+	c.sendYourTurn(firstPlayer, p1, p2)
+}
+
+func (c *Client) handlePlaceCard(raw []byte) {
+	var msg PlaceCardMsg
+	if err := json.Unmarshal(raw, &msg); err != nil {
+		c.SendMsg(newError("invalid place_card message"))
+		return
+	}
+
+	if c.room == nil {
+		c.SendMsg(newError("no active game"))
+		return
+	}
+
+	c.room.mu.Lock()
+	game := c.room.Game
+	if game == nil {
+		c.room.mu.Unlock()
+		c.SendMsg(newError("no active game"))
+		return
+	}
+
+	if err := game.PlaceCard(c.playerNumber, msg.CardIndex, msg.SlotIndex); err != nil {
+		c.room.mu.Unlock()
+		c.SendMsg(newError(err.Error()))
+		return
+	}
+
+	phase := game.Phase
+	currentTurn := game.CurrentTurn
+	p1 := c.room.Players[0]
+	p2 := c.room.Players[1]
+	c.room.mu.Unlock()
+
+	slog.Info("card placed", "player", c.name, "slot", msg.SlotIndex, "room", c.room.Code)
+
+	placed := CardPlacedMsg{Type: "card_placed", SlotIndex: msg.SlotIndex, ByPlayer: c.playerNumber}
+	if p1 != nil {
+		p1.SendMsg(placed)
+	}
+	if p2 != nil {
+		p2.SendMsg(placed)
+	}
+
+	if phase == PhaseSwap {
+		// All cards placed — transition to swap phase
+		prompt := SwapPromptMsg{Type: "swap_prompt", ByPlayer: currentTurn}
+		if p1 != nil {
+			p1.SendMsg(prompt)
+		}
+		if p2 != nil {
+			p2.SendMsg(prompt)
+		}
+	} else {
+		// Send your_turn to the next player
+		c.sendYourTurn(currentTurn, p1, p2)
+	}
+}
+
+func (c *Client) handlePass() {
+	if c.room == nil {
+		c.SendMsg(newError("no active game"))
+		return
+	}
+
+	c.room.mu.Lock()
+	game := c.room.Game
+	if game == nil {
+		c.room.mu.Unlock()
+		c.SendMsg(newError("no active game"))
+		return
+	}
+
+	if err := game.UsePass(c.playerNumber); err != nil {
+		c.room.mu.Unlock()
+		c.SendMsg(newError(err.Error()))
+		return
+	}
+
+	currentTurn := game.CurrentTurn
+	p1 := c.room.Players[0]
+	p2 := c.room.Players[1]
+	c.room.mu.Unlock()
+
+	slog.Info("player passed", "player", c.name, "room", c.room.Code)
+
+	passed := PlayerPassedMsg{Type: "player_passed", ByPlayer: c.playerNumber}
+	if p1 != nil {
+		p1.SendMsg(passed)
+	}
+	if p2 != nil {
+		p2.SendMsg(passed)
+	}
+
+	c.sendYourTurn(currentTurn, p1, p2)
+}
+
+func (c *Client) handlePeek(raw []byte) {
+	var msg PeekMsg
+	if err := json.Unmarshal(raw, &msg); err != nil {
+		c.SendMsg(newError("invalid peek message"))
+		return
+	}
+
+	if c.room == nil {
+		c.SendMsg(newError("no active game"))
+		return
+	}
+
+	c.room.mu.Lock()
+	game := c.room.Game
+	if game == nil {
+		c.room.mu.Unlock()
+		c.SendMsg(newError("no active game"))
+		return
+	}
+
+	card, err := game.Peek(c.playerNumber, msg.SlotIndex)
+	c.room.mu.Unlock()
+
+	if err != nil {
+		c.SendMsg(newError(err.Error()))
+		return
+	}
+
+	c.SendMsg(PeekResultMsg{Type: "peek_result", SlotIndex: msg.SlotIndex, Card: *card})
+}
+
+// sendYourTurn sends a your_turn message to the player whose turn it is.
+func (c *Client) sendYourTurn(currentTurn int, p1, p2 *Client) {
+	yourTurn := YourTurnMsg{Type: "your_turn"}
+	if currentTurn == 1 && p1 != nil {
+		p1.SendMsg(yourTurn)
+	} else if currentTurn == 2 && p2 != nil {
+		p2.SendMsg(yourTurn)
 	}
 }
 

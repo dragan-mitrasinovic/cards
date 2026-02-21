@@ -5,7 +5,7 @@ import { map, Subscription } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { WebSocketService } from '../shared/websocket.service';
 import { GameStateService } from '../shared/game-state.service';
-import { PlayerJoinedMessage, PlayerDisconnectedMessage, ErrorMessage, TurnOrderResultMessage, GameStartMessage } from '../shared/messages';
+import { PlayerJoinedMessage, PlayerDisconnectedMessage, ErrorMessage, TurnOrderResultMessage, GameStartMessage, CardPlacedMessage, PlayerPassedMessage, PeekResultMessage, SwapPromptMessage } from '../shared/messages';
 import { TurnOrderPickComponent } from './turn-order-pick/turn-order-pick';
 
 @Component({
@@ -78,7 +78,42 @@ export class GameComponent implements OnInit, OnDestroy {
           const start = msg as GameStartMessage;
           this.gameState.hand.set(start.hand);
           this.gameState.firstPlayer.set(start.firstPlayer);
+          this.gameState.currentTurn.set(start.firstPlayer);
           this.gameState.phase.set('placement');
+          break;
+        }
+        case 'your_turn': {
+          this.gameState.isMyTurn.set(true);
+          break;
+        }
+        case 'card_placed': {
+          const placed = msg as CardPlacedMessage;
+          const board = [...this.gameState.board()];
+          board[placed.slotIndex] = { occupied: true, byPlayer: placed.byPlayer };
+          this.gameState.board.set(board);
+          this.gameState.isMyTurn.set(false);
+          break;
+        }
+        case 'player_passed': {
+          const passed = msg as PlayerPassedMessage;
+          const passUsed: [boolean, boolean] = [...this.gameState.passUsed()];
+          passUsed[passed.byPlayer - 1] = true;
+          this.gameState.passUsed.set(passUsed);
+          this.gameState.isMyTurn.set(false);
+          break;
+        }
+        case 'peek_result': {
+          const peek = msg as PeekResultMessage;
+          const peekBoard = [...this.gameState.board()];
+          peekBoard[peek.slotIndex] = { ...peekBoard[peek.slotIndex], card: peek.card };
+          this.gameState.board.set(peekBoard);
+          break;
+        }
+        case 'swap_prompt': {
+          const swap = msg as SwapPromptMessage;
+          this.gameState.phase.set('swap');
+          this.gameState.currentTurn.set(swap.byPlayer);
+          this.gameState.isMyTurn.set(swap.byPlayer === this.gameState.playerNumber());
           break;
         }
         case 'error': {
@@ -109,5 +144,20 @@ export class GameComponent implements OnInit, OnDestroy {
 
   copyLink(): void {
     navigator.clipboard.writeText(this.shareableLink());
+  }
+
+  placeCard(cardIndex: number, slotIndex: number): void {
+    this.ws.send({ type: 'place_card', cardIndex, slotIndex });
+    const used = [...this.gameState.handUsed()];
+    used[cardIndex] = true;
+    this.gameState.handUsed.set(used);
+  }
+
+  pass(): void {
+    this.ws.send({ type: 'pass' });
+  }
+
+  peek(slotIndex: number): void {
+    this.ws.send({ type: 'peek', slotIndex });
   }
 }
