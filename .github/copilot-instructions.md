@@ -55,6 +55,8 @@ Before gameplay begins, both players independently state one of:
 2. "I'm neutral"
 3. "I don't want to go first"
 
+Players **can see their own hand** during this phase — the decision of who goes first is a strategic one based on the cards they hold.
+
 The players must reach an agreement on who goes first based on these preferences. If both want to go first or both don't want to go first, the game must prompt them to resolve the conflict (e.g., re-pick or random tiebreak — implementation TBD).
 
 ### Placement Phase

@@ -273,8 +273,81 @@ func (c *Client) handleTurnOrderPick(raw []byte) {
 		return
 	}
 
-	// Turn order pick logic will be implemented in the next task
-	slog.Info("turn order pick received", "player", c.name, "preference", msg.Preference)
+	if !ValidPreference(msg.Preference) {
+		c.SendMsg(newError("invalid preference"))
+		return
+	}
+
+	c.room.mu.Lock()
+	game := c.room.Game
+
+	// Prevent double-pick
+	if game.Picks[c.playerNumber-1] != "" {
+		c.room.mu.Unlock()
+		c.SendMsg(newError("already picked"))
+		return
+	}
+
+	game.SetPick(c.playerNumber, Preference(msg.Preference))
+	slog.Info("turn order pick received", "player", c.name, "preference", msg.Preference, "room", c.room.Code)
+
+	if !game.BothPicked() {
+		c.room.mu.Unlock()
+		return
+	}
+
+	// Both picked — resolve
+	firstPlayer, conflict := game.ResolveTurnOrder()
+
+	result := TurnOrderResultMsg{
+		Type:     "turn_order_result",
+		Pick1:    string(game.Picks[0]),
+		Pick2:    string(game.Picks[1]),
+		Conflict: conflict,
+	}
+
+	if conflict {
+		game.ResetPicks()
+		p1 := c.room.Players[0]
+		p2 := c.room.Players[1]
+		c.room.mu.Unlock()
+
+		if p1 != nil {
+			p1.SendMsg(result)
+		}
+		if p2 != nil {
+			p2.SendMsg(result)
+		}
+		return
+	}
+
+	// Resolved — transition to placement phase
+	game.FirstPlayer = firstPlayer
+	game.CurrentTurn = firstPlayer
+	game.Phase = PhasePlacement
+	result.FirstPlayer = firstPlayer
+
+	hand1 := game.Hands[0][:]
+	hand2 := game.Hands[1][:]
+	p1 := c.room.Players[0]
+	p2 := c.room.Players[1]
+	c.room.mu.Unlock()
+
+	// Send result to both
+	if p1 != nil {
+		p1.SendMsg(result)
+	}
+	if p2 != nil {
+		p2.SendMsg(result)
+	}
+
+	// Send game_start with each player's hand
+	if p1 != nil {
+		p1.SendMsg(GameStartMsg{Type: "game_start", Hand: hand1, FirstPlayer: firstPlayer})
+	}
+	if p2 != nil {
+		p2.SendMsg(GameStartMsg{Type: "game_start", Hand: hand2, FirstPlayer: firstPlayer})
+	}
 }
 
 func (c *Client) cleanup() {

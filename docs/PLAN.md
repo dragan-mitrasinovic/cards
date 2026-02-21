@@ -173,7 +173,7 @@ LOBBY (waiting for 2nd player)
 
 ### Phase 2: Core Game Loop
 - [x] Deck, shuffle, deal logic (server)
-- [ ] Turn order pick phase (transparent re-pick on conflict)
+- [x] Turn order pick phase (transparent re-pick on conflict)
 - [ ] Placement phase (alternating turns, validation, pass mechanic)
 - [ ] Board and hand rendering (frontend)
 

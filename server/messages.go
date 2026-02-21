@@ -67,6 +67,20 @@ type TurnOrderPickMsg struct {
 	Preference string `json:"preference"`
 }
 
+// TurnOrderResultMsg is sent to both players after both have picked.
+type TurnOrderResultMsg struct {
+	Type        string `json:"type"`
+	Pick1       string `json:"pick1"`
+	Pick2       string `json:"pick2"`
+	Conflict    bool   `json:"conflict"`
+	FirstPlayer int    `json:"firstPlayer,omitempty"`
+}
+
+// YourTurnMsg is sent to the active player to prompt them for their turn.
+type YourTurnMsg struct {
+	Type string `json:"type"`
+}
+
 // GameStartMsg is sent to each player when the game begins, containing their hand.
 type GameStartMsg struct {
 	Type        string `json:"type"`

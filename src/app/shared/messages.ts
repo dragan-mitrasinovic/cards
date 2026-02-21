@@ -67,6 +67,14 @@ export interface TurnOrderPromptMessage extends BaseMessage {
   type: 'turn_order_prompt';
 }
 
+export interface TurnOrderResultMessage extends BaseMessage {
+  type: 'turn_order_result';
+  pick1: string;
+  pick2: string;
+  conflict: boolean;
+  firstPlayer?: number;
+}
+
 export interface GameStartMessage extends BaseMessage {
   type: 'game_start';
   hand: Card[];
@@ -80,4 +88,5 @@ export type ServerMessage =
   | PlayerJoinedMessage
   | PlayerDisconnectedMessage
   | TurnOrderPromptMessage
+  | TurnOrderResultMessage
   | GameStartMessage;

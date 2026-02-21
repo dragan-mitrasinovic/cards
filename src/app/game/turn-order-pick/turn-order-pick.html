@@ -1,0 +1,60 @@
+<div class="flex flex-col items-center gap-6 py-8">
+  @if (result(); as r) {
+    <!-- Show both picks transparently -->
+    <h2 class="text-xl font-semibold">Turn Order Picks</h2>
+    <div class="flex gap-8">
+      <div class="text-center">
+        <p class="text-sm text-gray-500 mb-1">{{ gameState.playerName() }} (You)</p>
+        <p class="font-semibold text-lg">{{ preferenceLabel(gameState.playerNumber() === 1 ? r.pick1 : r.pick2) }}</p>
+      </div>
+      <div class="text-center">
+        <p class="text-sm text-gray-500 mb-1">{{ gameState.partnerName() }}</p>
+        <p class="font-semibold text-lg">{{ preferenceLabel(gameState.playerNumber() === 1 ? r.pick2 : r.pick1) }}</p>
+      </div>
+    </div>
+
+    @if (r.conflict) {
+      <div class="text-center">
+        <p class="text-amber-600 font-medium mb-3">Conflict! You both made the same choice. Pick again.</p>
+        <button
+          (click)="repick()"
+          class="px-6 py-2 bg-blue-500 text-white rounded-md font-medium hover:bg-blue-600"
+        >
+          Pick Again
+        </button>
+      </div>
+    }
+  } @else {
+    <!-- Pick UI -->
+    <h2 class="text-xl font-semibold">Who goes first?</h2>
+    <p class="text-sm text-gray-500">Choose your turn order preference</p>
+
+    @if (!picked()) {
+      <div class="flex flex-col sm:flex-row gap-3">
+        <button
+          (click)="pick('first')"
+          class="px-6 py-3 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 min-w-[160px]"
+        >
+          I'll go first
+        </button>
+        <button
+          (click)="pick('neutral')"
+          class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 min-w-[160px]"
+        >
+          No preference
+        </button>
+        <button
+          (click)="pick('no_first')"
+          class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 min-w-[160px]"
+        >
+          I'll go second
+        </button>
+      </div>
+    } @else {
+      <div class="text-center">
+        <p class="text-gray-600 mb-2">You chose: <span class="font-semibold">{{ preferenceLabel(picked()!) }}</span></p>
+        <p class="text-sm text-gray-400 animate-pulse">Waiting for {{ gameState.partnerName() }}…</p>
+      </div>
+    }
+  }
+</div>

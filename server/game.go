@@ -87,6 +87,24 @@ const (
 // BoardSize is the number of slots on the game board.
 const BoardSize = 15
 
+// Preference represents a player's turn order preference.
+type Preference string
+
+const (
+	PrefFirst   Preference = "first"
+	PrefNeutral Preference = "neutral"
+	PrefNoFirst Preference = "no_first"
+)
+
+// ValidPreference reports whether p is a valid turn order preference.
+func ValidPreference(p string) bool {
+	switch Preference(p) {
+	case PrefFirst, PrefNeutral, PrefNoFirst:
+		return true
+	}
+	return false
+}
+
 // Game represents the state of a single game.
 type Game struct {
 	Phase       Phase
@@ -95,6 +113,50 @@ type Game struct {
 	FirstPlayer int // 1 or 2; set after turn order resolution
 	CurrentTurn int // 1 or 2
 	PassUsed    [2]bool
+	Picks       [2]Preference // turn order preferences (index 0 = player 1)
+}
+
+// SetPick records a player's turn order preference. playerNumber is 1 or 2.
+func (g *Game) SetPick(playerNumber int, pref Preference) {
+	g.Picks[playerNumber-1] = pref
+}
+
+// BothPicked reports whether both players have submitted their turn order preference.
+func (g *Game) BothPicked() bool {
+	return g.Picks[0] != "" && g.Picks[1] != ""
+}
+
+// ResolveTurnOrder resolves the turn order picks. Returns (firstPlayer, conflict).
+// If conflict is true, firstPlayer is 0 and picks should be reset for re-pick.
+func (g *Game) ResolveTurnOrder() (int, bool) {
+	p1, p2 := g.Picks[0], g.Picks[1]
+
+	switch {
+	case p1 == PrefFirst && p2 == PrefFirst:
+		return 0, true
+	case p1 == PrefNoFirst && p2 == PrefNoFirst:
+		return 0, true
+	case p1 == PrefFirst && p2 != PrefFirst:
+		return 1, false
+	case p2 == PrefFirst && p1 != PrefFirst:
+		return 2, false
+	case p1 == PrefNoFirst && p2 != PrefNoFirst:
+		return 2, false
+	case p2 == PrefNoFirst && p1 != PrefNoFirst:
+		return 1, false
+	default:
+		// Both neutral — random pick
+		n, err := rand.Int(rand.Reader, big.NewInt(2))
+		if err != nil {
+			return 1, false // fallback
+		}
+		return int(n.Int64()) + 1, false
+	}
+}
+
+// ResetPicks clears both players' turn order preferences for a re-pick.
+func (g *Game) ResetPicks() {
+	g.Picks = [2]Preference{}
 }
 
 // NewGame creates a new game, shuffles and deals cards.

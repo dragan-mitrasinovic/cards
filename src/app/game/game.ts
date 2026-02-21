@@ -5,11 +5,12 @@ import { map, Subscription } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { WebSocketService } from '../shared/websocket.service';
 import { GameStateService } from '../shared/game-state.service';
-import { PlayerJoinedMessage, PlayerDisconnectedMessage, ErrorMessage } from '../shared/messages';
+import { PlayerJoinedMessage, PlayerDisconnectedMessage, ErrorMessage, TurnOrderResultMessage, GameStartMessage } from '../shared/messages';
+import { TurnOrderPickComponent } from './turn-order-pick/turn-order-pick';
 
 @Component({
   selector: 'app-game',
-  imports: [FormsModule],
+  imports: [FormsModule, TurnOrderPickComponent],
   templateUrl: './game.html',
   styleUrl: './game.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -61,6 +62,23 @@ export class GameComponent implements OnInit, OnDestroy {
         }
         case 'turn_order_prompt': {
           this.gameState.phase.set('turn_order_pick');
+          break;
+        }
+        case 'turn_order_result': {
+          const result = msg as TurnOrderResultMessage;
+          this.gameState.turnOrderResult.set({
+            pick1: result.pick1,
+            pick2: result.pick2,
+            conflict: result.conflict,
+            firstPlayer: result.firstPlayer,
+          });
+          break;
+        }
+        case 'game_start': {
+          const start = msg as GameStartMessage;
+          this.gameState.hand.set(start.hand);
+          this.gameState.firstPlayer.set(start.firstPlayer);
+          this.gameState.phase.set('placement');
           break;
         }
         case 'error': {

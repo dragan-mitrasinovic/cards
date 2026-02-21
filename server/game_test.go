@@ -176,3 +176,93 @@ func TestNewGame(t *testing.T) {
 		}
 	}
 }
+
+func TestValidPreference(t *testing.T) {
+	tests := []struct {
+		input string
+		valid bool
+	}{
+		{"first", true},
+		{"neutral", true},
+		{"no_first", true},
+		{"", false},
+		{"invalid", false},
+		{"FIRST", false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			if got := ValidPreference(tt.input); got != tt.valid {
+				t.Errorf("ValidPreference(%q) = %v, want %v", tt.input, got, tt.valid)
+			}
+		})
+	}
+}
+
+func TestResolveTurnOrder(t *testing.T) {
+	tests := []struct {
+		name        string
+		pick1       Preference
+		pick2       Preference
+		wantFirst   int
+		wantConflct bool
+	}{
+		{"both first = conflict", PrefFirst, PrefFirst, 0, true},
+		{"both no_first = conflict", PrefNoFirst, PrefNoFirst, 0, true},
+		{"first vs neutral", PrefFirst, PrefNeutral, 1, false},
+		{"first vs no_first", PrefFirst, PrefNoFirst, 1, false},
+		{"neutral vs first", PrefNeutral, PrefFirst, 2, false},
+		{"no_first vs first", PrefNoFirst, PrefFirst, 2, false},
+		{"no_first vs neutral", PrefNoFirst, PrefNeutral, 2, false},
+		{"neutral vs no_first", PrefNeutral, PrefNoFirst, 1, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			game := &Game{Picks: [2]Preference{tt.pick1, tt.pick2}}
+			first, conflict := game.ResolveTurnOrder()
+			if conflict != tt.wantConflct {
+				t.Errorf("conflict = %v, want %v", conflict, tt.wantConflct)
+			}
+			if !tt.wantConflct && first != tt.wantFirst {
+				t.Errorf("firstPlayer = %d, want %d", first, tt.wantFirst)
+			}
+		})
+	}
+}
+
+func TestResolveTurnOrderBothNeutral(t *testing.T) {
+	// Both neutral should randomly pick 1 or 2 without conflict
+	game := &Game{Picks: [2]Preference{PrefNeutral, PrefNeutral}}
+	first, conflict := game.ResolveTurnOrder()
+	if conflict {
+		t.Error("both neutral should not be a conflict")
+	}
+	if first != 1 && first != 2 {
+		t.Errorf("firstPlayer should be 1 or 2, got %d", first)
+	}
+}
+
+func TestSetPickAndBothPicked(t *testing.T) {
+	game := &Game{}
+
+	if game.BothPicked() {
+		t.Error("BothPicked should be false before any picks")
+	}
+
+	game.SetPick(1, PrefFirst)
+	if game.BothPicked() {
+		t.Error("BothPicked should be false with only one pick")
+	}
+
+	game.SetPick(2, PrefNeutral)
+	if !game.BothPicked() {
+		t.Error("BothPicked should be true after both picks")
+	}
+}
+
+func TestResetPicks(t *testing.T) {
+	game := &Game{Picks: [2]Preference{PrefFirst, PrefNoFirst}}
+	game.ResetPicks()
+	if game.Picks[0] != "" || game.Picks[1] != "" {
+		t.Error("ResetPicks should clear both picks")
+	}
+}
