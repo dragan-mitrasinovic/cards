@@ -73,14 +73,48 @@
         }
       </div>
     } @else if (gameState.phase() === 'placement') {
-      <div class="flex justify-center items-center min-h-[300px] border-2 border-dashed border-gray-300 rounded-lg">
-        <div class="text-center">
-          <p class="text-lg text-gray-700">
-            <span class="font-semibold">{{ gameState.playerName() }}</span>
-            <span class="text-gray-400 mx-2">&amp;</span>
-            <span class="font-semibold">{{ gameState.partnerName() }}</span>
-          </p>
-          <p class="text-sm text-gray-400 mt-2">Placement phase — coming soon…</p>
+      <div class="placement-phase">
+        <!-- Player bar -->
+        <div class="flex items-center justify-between px-4 py-2 bg-gray-50 rounded-lg mb-4">
+          <div class="flex items-center gap-4">
+            <span class="font-semibold" [class.text-blue-600]="gameState.isMyTurn()">{{ gameState.playerName() }}</span>
+            <span class="text-gray-400">&amp;</span>
+            <span class="font-semibold" [class.text-blue-600]="!gameState.isMyTurn()">{{ gameState.partnerName() }}</span>
+          </div>
+          <div class="flex items-center gap-4 text-sm text-gray-500">
+            @if (gameState.isMyTurn()) {
+              <span class="text-blue-600 font-medium">Your turn</span>
+            } @else {
+              <span>Waiting for {{ gameState.partnerName() }}…</span>
+            }
+            @if (!gameState.passUsed()[gameState.playerNumber() - 1]) {
+              <button
+                (click)="pass()"
+                [disabled]="!gameState.isMyTurn()"
+                class="px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Pass
+              </button>
+            } @else {
+              <span class="text-gray-400 text-xs">Pass used</span>
+            }
+          </div>
+        </div>
+
+        <!-- Board -->
+        <app-board
+          [selectedCardIndex]="selectedCardIndex()"
+          (slotPlace)="onSlotPlace($event)"
+          (slotPeek)="peek($event)"
+        />
+
+        <!-- Hand -->
+        <div class="mt-4 pt-4 border-t border-gray-200">
+          <p class="text-sm text-gray-500 text-center mb-2">Your hand</p>
+          <app-hand
+            [selectedIndex]="selectedCardIndex()"
+            (cardSelected)="selectCard($event)"
+          />
         </div>
       </div>
     } @else {

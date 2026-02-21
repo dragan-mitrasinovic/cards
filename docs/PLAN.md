@@ -175,7 +175,7 @@ LOBBY (waiting for 2nd player)
 - [x] Deck, shuffle, deal logic (server)
 - [x] Turn order pick phase (transparent re-pick on conflict)
 - [x] Placement phase (alternating turns, validation, pass mechanic)
-- [ ] Board and hand rendering (frontend)
+- [x] Board and hand rendering (frontend)
 
 ### Phase 3: Swap & Reveal
 - [ ] Swap phase logic (suggest, accept/reject, skip)

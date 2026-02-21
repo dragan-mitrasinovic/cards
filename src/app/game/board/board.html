@@ -1,0 +1,24 @@
+<div class="board-container">
+  <div class="board">
+    @for (slot of board(); track $index) {
+      <div
+        class="slot"
+        [class.slot-empty]="!slot.occupied"
+        [class.slot-placeable]="!slot.occupied && selectedCardIndex() >= 0 && isMyTurn()"
+        [class.slot-peekable]="slot.occupied && slot.byPlayer === playerNumber()"
+        (click)="onSlotClick($index)"
+      >
+        @if (slot.occupied) {
+          <app-card
+            class="pointer-events-none"
+            [card]="slot.card"
+            [faceUp]="!!slot.card"
+            [ownCard]="slot.byPlayer === playerNumber()"
+          />
+        } @else {
+          <span class="slot-number">{{ $index + 1 }}</span>
+        }
+      </div>
+    }
+  </div>
+</div>

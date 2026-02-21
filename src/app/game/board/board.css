@@ -1,0 +1,51 @@
+.board-container {
+  width: 100%;
+  overflow-x: auto;
+  padding: 16px 0;
+}
+
+.board {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  min-width: min-content;
+  padding: 0 16px;
+}
+
+.slot {
+  width: 80px;
+  height: 120px;
+  border-radius: 8px;
+  border: 2px dashed #d1d5db;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: border-color 0.15s, background-color 0.15s;
+  cursor: default;
+}
+
+.slot-empty {
+  background: #f9fafb;
+}
+
+.slot-placeable {
+  border-color: #3b82f6;
+  background: #eff6ff;
+  cursor: pointer;
+}
+
+.slot-placeable:hover {
+  background: #dbeafe;
+  border-color: #2563eb;
+}
+
+.slot-peekable {
+  cursor: pointer;
+}
+
+.slot-number {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  font-weight: 500;
+}

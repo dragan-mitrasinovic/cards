@@ -7,10 +7,12 @@ import { WebSocketService } from '../shared/websocket.service';
 import { GameStateService } from '../shared/game-state.service';
 import { PlayerJoinedMessage, PlayerDisconnectedMessage, ErrorMessage, TurnOrderResultMessage, GameStartMessage, CardPlacedMessage, PlayerPassedMessage, PeekResultMessage, SwapPromptMessage } from '../shared/messages';
 import { TurnOrderPickComponent } from './turn-order-pick/turn-order-pick';
+import { BoardComponent } from './board/board';
+import { HandComponent } from './hand/hand';
 
 @Component({
   selector: 'app-game',
-  imports: [FormsModule, TurnOrderPickComponent],
+  imports: [FormsModule, TurnOrderPickComponent, BoardComponent, HandComponent],
   templateUrl: './game.html',
   styleUrl: './game.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -27,6 +29,7 @@ export class GameComponent implements OnInit, OnDestroy {
   readonly needsJoin = signal(false);
   readonly joinError = signal('');
   readonly partnerDisconnected = signal(false);
+  readonly selectedCardIndex = signal(-1);
   joinName = '';
 
   private messagesSub?: Subscription;
@@ -107,6 +110,12 @@ export class GameComponent implements OnInit, OnDestroy {
           const peekBoard = [...this.gameState.board()];
           peekBoard[peek.slotIndex] = { ...peekBoard[peek.slotIndex], card: peek.card };
           this.gameState.board.set(peekBoard);
+          // Auto-hide after 2 seconds
+          setTimeout(() => {
+            const b = [...this.gameState.board()];
+            b[peek.slotIndex] = { ...b[peek.slotIndex], card: undefined };
+            this.gameState.board.set(b);
+          }, 2000);
           break;
         }
         case 'swap_prompt': {
@@ -151,6 +160,18 @@ export class GameComponent implements OnInit, OnDestroy {
     const used = [...this.gameState.handUsed()];
     used[cardIndex] = true;
     this.gameState.handUsed.set(used);
+    this.selectedCardIndex.set(-1);
+  }
+
+  selectCard(index: number): void {
+    this.selectedCardIndex.set(this.selectedCardIndex() === index ? -1 : index);
+  }
+
+  onSlotPlace(slotIndex: number): void {
+    const cardIndex = this.selectedCardIndex();
+    if (cardIndex >= 0) {
+      this.placeCard(cardIndex, slotIndex);
+    }
   }
 
   pass(): void {

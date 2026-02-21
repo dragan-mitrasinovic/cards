@@ -1,0 +1,13 @@
+.hand-container {
+  width: 100%;
+  overflow-x: auto;
+  padding: 16px 0;
+}
+
+.hand {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  min-width: min-content;
+  padding: 0 16px;
+}

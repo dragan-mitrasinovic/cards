@@ -1,0 +1,20 @@
+<button
+  class="card"
+  [class.face-up]="faceUp()"
+  [class.face-down]="!faceUp()"
+  [class.selected]="selected()"
+  [class.own-card]="ownCard()"
+  [disabled]="disabled()"
+  (click)="clicked.emit()"
+>
+  @if (faceUp() && card(); as c) {
+    <span class="card-value" [style.color]="suitColor(c.suit)">
+      {{ c.value }}
+    </span>
+    <span class="card-suit" [style.color]="suitColor(c.suit)">
+      {{ suitSymbol(c.suit) }}
+    </span>
+  } @else if (!faceUp()) {
+    <span class="card-back">🂠</span>
+  }
+</button>

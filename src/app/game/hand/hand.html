@@ -1,0 +1,15 @@
+<div class="hand-container">
+  <div class="hand">
+    @for (card of hand(); track $index) {
+      @if (!handUsed()[$index]) {
+        <app-card
+          [card]="card"
+          [faceUp]="true"
+          [selected]="selectedIndex() === $index"
+          [disabled]="!isMyTurn()"
+          (clicked)="onCardClick($index)"
+        />
+      }
+    }
+  </div>
+</div>
