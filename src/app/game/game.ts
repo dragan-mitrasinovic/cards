@@ -1,36 +1,72 @@
-import { Component, computed, inject, OnInit, OnDestroy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map, Subscription } from 'rxjs';
 import { FormsModule } from '@angular/forms';
-import { JsonPipe } from '@angular/common';
 import { WebSocketService } from '../shared/websocket.service';
-import { ServerMessage } from '../shared/messages';
+import { GameStateService } from '../shared/game-state.service';
+import { PlayerJoinedMessage, PlayerDisconnectedMessage, ErrorMessage } from '../shared/messages';
 
 @Component({
   selector: 'app-game',
-  imports: [FormsModule, JsonPipe],
+  imports: [FormsModule],
   templateUrl: './game.html',
   styleUrl: './game.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GameComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private params = toSignal(this.route.paramMap.pipe(map((p) => p.get('id'))));
-  readonly gameId = computed(() => this.params() ?? '');
+  readonly roomId = computed(() => this.params() ?? '');
 
   readonly ws = inject(WebSocketService);
-  debugMessages: ServerMessage[] = [];
-  debugInput = '';
+  readonly gameState = inject(GameStateService);
+
+  /** True when the user arrived via shareable link and needs to enter a name. */
+  readonly needsJoin = signal(false);
+  readonly joinError = signal('');
+  readonly partnerDisconnected = signal(false);
+  joinName = '';
 
   private messagesSub?: Subscription;
 
+  readonly shareableLink = computed(() => {
+    const code = this.gameState.roomCode() || this.roomId();
+    return code ? `${location.origin}/game/${code}` : '';
+  });
+
   ngOnInit(): void {
-    if (this.ws.status() === 'disconnected') {
-      this.ws.connect('/ws');
+    // If arriving via shareable link without an active room, prompt to join
+    if (this.ws.status() === 'disconnected' || !this.gameState.roomCode()) {
+      this.needsJoin.set(true);
     }
 
     this.messagesSub = this.ws.messages$.subscribe((msg) => {
-      this.debugMessages = [...this.debugMessages, msg].slice(-10);
+      switch (msg.type) {
+        case 'player_joined': {
+          const joined = msg as PlayerJoinedMessage;
+          this.gameState.playerName.set(joined.playerName);
+          this.gameState.playerNumber.set(joined.playerNumber);
+          this.gameState.partnerName.set(joined.partnerName);
+          this.needsJoin.set(false);
+          this.partnerDisconnected.set(false);
+          break;
+        }
+        case 'player_disconnected': {
+          const disc = msg as PlayerDisconnectedMessage;
+          if (disc.playerName === this.gameState.partnerName()) {
+            this.partnerDisconnected.set(true);
+          }
+          break;
+        }
+        case 'error': {
+          const err = msg as ErrorMessage;
+          if (this.needsJoin()) {
+            this.joinError.set(err.message);
+          }
+          break;
+        }
+      }
     });
   }
 
@@ -38,10 +74,18 @@ export class GameComponent implements OnInit, OnDestroy {
     this.messagesSub?.unsubscribe();
   }
 
-  sendDebugMessage(): void {
-    const text = this.debugInput.trim();
-    if (!text) return;
-    this.ws.send({ type: 'echo', payload: text });
-    this.debugInput = '';
+  joinRoom(): void {
+    this.joinError.set('');
+    const name = this.joinName.trim();
+    if (!name) return;
+
+    const code = this.roomId();
+    this.ws.connect('/ws');
+    this.ws.send({ type: 'join_room', name, roomCode: code });
+    this.gameState.roomCode.set(code);
+  }
+
+  copyLink(): void {
+    navigator.clipboard.writeText(this.shareableLink());
   }
 }

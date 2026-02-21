@@ -95,8 +95,8 @@ LOBBY (waiting for 2nd player)
 
 | Message | Payload | Notes |
 |---|---|---|
-| `room_created` | `{ roomCode, gameId }` | After creation |
-| `player_joined` | `{ playerName, playerNumber }` | Both notified |
+| `room_created` | `{ roomCode, playerNumber }` | After creation |
+| `player_joined` | `{ playerName, playerNumber, partnerName }` | Both notified |
 | `turn_order_prompt` | `{}` | Ask for preference |
 | `turn_order_result` | `{ picks, conflict?, firstPlayer? }` | Transparent |
 | `game_start` | `{ hand: Card[], firstPlayer }` | Own hand only |
@@ -127,12 +127,12 @@ LOBBY (waiting for 2nd player)
 ### Core Components
 
 - **`HomeComponent`** — Enter name, create game (shows code + link), or join via code. Auto-joins if arriving via shareable link.
-- **`GameComponent`** — Phase orchestrator. Contains sub-components per phase. Displays opponent info, connection status.
+- **`GameComponent`** — Phase orchestrator. Contains sub-components per phase. Displays partner info, connection status.
 - **`TurnOrderPickComponent`** — Three-button pick UI. Shows waiting state, then both choices transparently. Re-pick on conflict.
 - **`BoardComponent`** — 15 slots (empty / face-down / face-up). Click to place or peek. Responsive layout.
 - **`HandComponent`** — Player's cards at bottom. Select → click slot to place. Scrollable on mobile.
 - **`CardComponent`** — Single card (face-up/down). CSS 3D flip animation. Suit+number display.
-- **`SwapPhaseComponent`** — Click two adjacent slots to suggest swap, or skip. Accept/reject UI for opponent's suggestion.
+- **`SwapPhaseComponent`** — Click two adjacent slots to suggest swap, or skip. Accept/reject UI for partner's suggestion.
 - **`RevealComponent`** — Staggered flip animation. Pause between reveals.
 - **`GameOverComponent`** — Win/lose message. Play Again + Leave buttons.
 
@@ -169,7 +169,7 @@ LOBBY (waiting for 2nd player)
 - [x] Go server skeleton in `/server` with gorilla/websocket
 - [x] Angular routing — `HomeComponent` (`/`) and `GameComponent` (`/game/:id`)
 - [x] Basic WebSocket connection between frontend and backend
-- [ ] Room creation & joining (room codes + shareable links)
+- [x] Room creation & joining (room codes + shareable links)
 
 ### Phase 2: Core Game Loop
 - [ ] Deck, shuffle, deal logic (server)

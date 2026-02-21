@@ -9,6 +9,9 @@ applyTo: '**/*.go'
 - Backend code lives in the `/server` directory
 - Use Go modules (`go.mod`) for dependency management
 - Organize code by responsibility (handlers, models, services)
+- Run the server with `cd server && go run .` (NOT `go run main.go` — multi-file packages require `.`)
+- Build with `cd server && go build .`
+- Test with `cd server && go test ./...`
 
 ## Code Style
 - Follow [Effective Go](https://go.dev/doc/effective_go) conventions

@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -18,66 +18,52 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-func handleWebSocket(w http.ResponseWriter, r *http.Request) {
-	conn, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		log.Printf("WebSocket upgrade failed: %v", err)
-		return
-	}
-	defer conn.Close()
-
-	log.Printf("Client connected: %s", conn.RemoteAddr())
-
-	for {
-		messageType, message, err := conn.ReadMessage()
+func handleWebSocket(rooms *RoomManager) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		conn, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
-			if websocket.IsCloseError(err, websocket.CloseGoingAway, websocket.CloseNormalClosure) {
-				log.Printf("Client disconnected: %s", conn.RemoteAddr())
-			} else {
-				log.Printf("Read error: %v", err)
-			}
-			break
+			slog.Error("WebSocket upgrade failed", "error", err)
+			return
 		}
 
-		log.Printf("Received: %s", message)
-
-		// Echo the message back (temporary smoke test)
-		if err := conn.WriteMessage(messageType, message); err != nil {
-			log.Printf("Write error: %v", err)
-			break
-		}
+		client := NewClient(conn, rooms)
+		go client.WritePump()
+		client.ReadPump()
 	}
 }
 
 func main() {
+	rooms := NewRoomManager()
+
 	mux := http.NewServeMux()
-	mux.HandleFunc("/ws", handleWebSocket)
+	mux.HandleFunc("/ws", handleWebSocket(rooms))
 
 	server := &http.Server{
 		Addr:    ":8080",
 		Handler: mux,
 	}
 
-	// Graceful shutdown
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 
 	go func() {
-		log.Printf("Server starting on %s", server.Addr)
+		slog.Info("server starting", "addr", server.Addr)
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("Server error: %v", err)
+			slog.Error("server error", "error", err)
+			os.Exit(1)
 		}
 	}()
 
 	<-stop
-	log.Println("Shutting down...")
+	slog.Info("shutting down")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	if err := server.Shutdown(ctx); err != nil {
-		log.Fatalf("Shutdown error: %v", err)
+		slog.Error("shutdown error", "error", err)
+		os.Exit(1)
 	}
 
-	log.Println("Server stopped")
+	slog.Info("server stopped")
 }

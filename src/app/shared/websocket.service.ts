@@ -20,6 +20,7 @@ export class WebSocketService implements OnDestroy {
   private heartbeatTimer: ReturnType<typeof setInterval> | null = null;
   private url: string | null = null;
   private intentionalClose = false;
+  private pendingMessages: ClientMessage[] = [];
 
   connect(path: string): void {
     this.disconnect();
@@ -33,6 +34,7 @@ export class WebSocketService implements OnDestroy {
   disconnect(): void {
     this.intentionalClose = true;
     this.clearTimers();
+    this.pendingMessages = [];
     if (this.socket) {
       this.socket.close();
       this.socket = null;
@@ -43,6 +45,8 @@ export class WebSocketService implements OnDestroy {
   send(message: ClientMessage): void {
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
       this.socket.send(JSON.stringify(message));
+    } else {
+      this.pendingMessages.push(message);
     }
   }
 
@@ -61,6 +65,7 @@ export class WebSocketService implements OnDestroy {
       this.status.set('connected');
       this.reconnectDelay = INITIAL_RECONNECT_DELAY;
       this.startHeartbeat();
+      this.flushPending();
     };
 
     this.socket.onmessage = (event: MessageEvent) => {
@@ -103,6 +108,13 @@ export class WebSocketService implements OnDestroy {
       clearInterval(this.heartbeatTimer);
       this.heartbeatTimer = null;
     }
+  }
+
+  private flushPending(): void {
+    for (const msg of this.pendingMessages) {
+      this.send(msg);
+    }
+    this.pendingMessages = [];
   }
 
   private clearTimers(): void {
