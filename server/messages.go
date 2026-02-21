@@ -138,7 +138,7 @@ type SwapPromptMsg struct {
 
 // --- Swap phase messages (Client → Server) ---
 
-// SuggestSwapMsg is sent by a player to suggest swapping two adjacent cards.
+// SuggestSwapMsg is sent by a player to suggest swapping two cards.
 type SuggestSwapMsg struct {
 	Type  string `json:"type"`
 	SlotA int    `json:"slotA"`
@@ -172,6 +172,7 @@ type SwapResultMsg struct {
 	Accepted bool   `json:"accepted"`
 	SlotA    int    `json:"slotA,omitempty"`
 	SlotB    int    `json:"slotB,omitempty"`
+	ByPlayer int    `json:"byPlayer,omitempty"`
 }
 
 // --- Reveal phase messages (Server → Client) ---

@@ -540,7 +540,7 @@ func TestSuggestSwap(t *testing.T) {
 
 	t.Run("wrong phase", func(t *testing.T) {
 		g := newSwapTestGame()
-		g.Phase = PhasePlacement
+		g.Phase = PhaseReveal
 		if err := g.SuggestSwap(1, 0, 1); err == nil {
 			t.Error("expected error for wrong phase")
 		}
@@ -797,6 +797,153 @@ func TestCheckWin(t *testing.T) {
 		g := &Game{}
 		if !g.CheckWin() {
 			t.Error("expected win with empty board")
+		}
+	})
+}
+
+func TestSuggestSwapDuringPlacement(t *testing.T) {
+	t.Run("either player can suggest", func(t *testing.T) {
+		g := newTestGame()
+		g.PlaceCard(1, 0, 0)
+		g.PlaceCard(2, 0, 1)
+		// Player 2 can suggest even though it's player 1's turn
+		if err := g.SuggestSwap(2, 0, 1); err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
+	})
+
+	t.Run("does not block PlaceCard when pending", func(t *testing.T) {
+		g := newTestGame()
+		g.PlaceCard(1, 0, 0)
+		g.PlaceCard(2, 0, 1)
+		g.SuggestSwap(1, 0, 1)
+		// Player 1's turn — should be able to place despite pending swap
+		if err := g.PlaceCard(1, 1, 2); err != nil {
+			t.Errorf("unexpected error: placement should not be blocked by pending swap: %v", err)
+		}
+	})
+
+	t.Run("does not block UsePass when pending", func(t *testing.T) {
+		g := newTestGame()
+		g.PlaceCard(1, 0, 0)
+		g.PlaceCard(2, 0, 1)
+		g.SuggestSwap(1, 0, 1)
+		if err := g.UsePass(1); err != nil {
+			t.Errorf("unexpected error: pass should not be blocked by pending swap: %v", err)
+		}
+	})
+
+	t.Run("accept swap during placement", func(t *testing.T) {
+		g := newTestGame()
+		g.PlaceCard(1, 0, 0) // H1 at slot 0
+		g.PlaceCard(2, 0, 1) // S1 at slot 1
+		g.SuggestSwap(1, 0, 1)
+		if err := g.RespondSwap(2, true); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if g.Board[0].Suit != Spades || g.Board[1].Suit != Hearts {
+			t.Error("cards were not swapped")
+		}
+		if !g.SwapAccepted[0] {
+			t.Error("expected swap accepted for player 1")
+		}
+		if g.Phase != PhasePlacement {
+			t.Errorf("expected placement phase, got %s", g.Phase)
+		}
+		if len(g.SwapHistory) != 1 {
+			t.Errorf("expected 1 swap history entry, got %d", len(g.SwapHistory))
+		}
+	})
+
+	t.Run("reject swap stays in placement", func(t *testing.T) {
+		g := newTestGame()
+		g.PlaceCard(1, 0, 0)
+		g.PlaceCard(2, 0, 1)
+		g.SuggestSwap(1, 0, 1)
+		if err := g.RespondSwap(2, false); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if g.SwapAccepted[0] {
+			t.Error("swap should not be accepted on reject")
+		}
+		if g.Phase != PhasePlacement {
+			t.Errorf("expected placement phase, got %s", g.Phase)
+		}
+	})
+
+	t.Run("placement swap responded in swap phase does not advance", func(t *testing.T) {
+		g := newTestGame()
+		g.PlaceCard(1, 0, 0)
+		g.PlaceCard(2, 0, 1)
+		g.SuggestSwap(1, 0, 1)
+		// Place remaining cards while swap is pending
+		for i := 1; i < 7; i++ {
+			g.PlaceCard(1, i, i*2)
+			g.PlaceCard(2, i, i*2+1)
+		}
+		// Now in swap phase with pending placement swap
+		if g.Phase != PhaseSwap {
+			t.Fatalf("expected swap phase, got %s", g.Phase)
+		}
+		turnBefore := g.CurrentTurn
+		g.RespondSwap(2, true)
+		// Should NOT have advanced the swap phase
+		if g.CurrentTurn != turnBefore {
+			t.Errorf("placement swap response should not advance swap turn")
+		}
+		if g.SwapsCompleted != 0 {
+			t.Errorf("expected 0 swaps completed, got %d", g.SwapsCompleted)
+		}
+	})
+}
+
+func TestSwapAcceptedLimit(t *testing.T) {
+	t.Run("cannot suggest when swap already accepted", func(t *testing.T) {
+		g := newSwapTestGame()
+		g.SwapAccepted[0] = true
+		if err := g.SuggestSwap(1, 0, 1); err == nil {
+			t.Error("expected error when swap already accepted")
+		}
+	})
+
+	t.Run("second player can still suggest", func(t *testing.T) {
+		g := newSwapTestGame()
+		g.SwapAccepted[0] = true
+		g.SkipSwap(1)
+		if err := g.SuggestSwap(2, 0, 1); err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
+	})
+}
+
+func TestAutoSkipSwaps(t *testing.T) {
+	t.Run("auto-skip player with accepted swap", func(t *testing.T) {
+		g := newTestGame()
+		g.SwapAccepted[0] = true
+		for i := 0; i < 7; i++ {
+			g.PlaceCard(1, i, i*2)
+			g.PlaceCard(2, i, i*2+1)
+		}
+		if g.Phase != PhaseSwap {
+			t.Fatalf("expected swap phase, got %s", g.Phase)
+		}
+		if g.CurrentTurn != 2 {
+			t.Errorf("expected player 2's turn after auto-skip, got %d", g.CurrentTurn)
+		}
+		if g.SwapsCompleted != 1 {
+			t.Errorf("expected 1 swap completed (auto-skipped), got %d", g.SwapsCompleted)
+		}
+	})
+
+	t.Run("both swaps accepted skips swap phase", func(t *testing.T) {
+		g := newTestGame()
+		g.SwapAccepted = [2]bool{true, true}
+		for i := 0; i < 7; i++ {
+			g.PlaceCard(1, i, i*2)
+			g.PlaceCard(2, i, i*2+1)
+		}
+		if g.Phase != PhaseReveal {
+			t.Errorf("expected reveal phase when both swaps used, got %s", g.Phase)
 		}
 	})
 }

@@ -395,6 +395,13 @@ func (c *Client) handlePlaceCard(raw []byte) {
 
 	phase := game.Phase
 	currentTurn := game.CurrentTurn
+	var revealOrder []RevealEntry
+	var win bool
+	if phase == PhaseReveal {
+		revealOrder = game.RevealOrder()
+		win = game.CheckWin()
+		game.Phase = PhaseGameOver
+	}
 	p1 := c.room.Players[0]
 	p2 := c.room.Players[1]
 	c.room.mu.Unlock()
@@ -418,6 +425,9 @@ func (c *Client) handlePlaceCard(raw []byte) {
 		if p2 != nil {
 			p2.SendMsg(prompt)
 		}
+	} else if phase == PhaseReveal {
+		// Both swaps used during placement — skip swap phase
+		c.sendRevealCards(p1, p2, revealOrder, win)
 	} else {
 		// Send your_turn to the next player
 		c.sendYourTurn(currentTurn, p1, p2)
@@ -614,6 +624,9 @@ func (c *Client) handleRespondSwap(raw []byte) {
 
 	slotA := game.SwapSlots[0]
 	slotB := game.SwapSlots[1]
+	suggester := game.SwapSuggester
+	phaseBefore := game.Phase
+	turnBefore := game.CurrentTurn
 
 	if err := game.RespondSwap(c.playerNumber, msg.Accept); err != nil {
 		c.room.mu.Unlock()
@@ -623,9 +636,10 @@ func (c *Client) handleRespondSwap(raw []byte) {
 
 	phase := game.Phase
 	currentTurn := game.CurrentTurn
+	phaseChanged := phase != phaseBefore || currentTurn != turnBefore
 	var revealOrder []RevealEntry
 	var win bool
-	if phase == PhaseReveal {
+	if phase == PhaseReveal && phaseChanged {
 		revealOrder = game.RevealOrder()
 		win = game.CheckWin()
 		game.Phase = PhaseGameOver
@@ -640,6 +654,7 @@ func (c *Client) handleRespondSwap(raw []byte) {
 	if msg.Accept {
 		result.SlotA = slotA
 		result.SlotB = slotB
+		result.ByPlayer = suggester
 	}
 	if p1 != nil {
 		p1.SendMsg(result)
@@ -648,16 +663,19 @@ func (c *Client) handleRespondSwap(raw []byte) {
 		p2.SendMsg(result)
 	}
 
-	if phase == PhaseSwap {
-		prompt := SwapPromptMsg{Type: "swap_prompt", ByPlayer: currentTurn}
-		if p1 != nil {
-			p1.SendMsg(prompt)
+	// Only send follow-up messages if the swap advanced the game state
+	if phaseChanged {
+		if phase == PhaseSwap {
+			prompt := SwapPromptMsg{Type: "swap_prompt", ByPlayer: currentTurn}
+			if p1 != nil {
+				p1.SendMsg(prompt)
+			}
+			if p2 != nil {
+				p2.SendMsg(prompt)
+			}
+		} else if phase == PhaseReveal {
+			c.sendRevealCards(p1, p2, revealOrder, win)
 		}
-		if p2 != nil {
-			p2.SendMsg(prompt)
-		}
-	} else if phase == PhaseReveal {
-		c.sendRevealCards(p1, p2, revealOrder, win)
 	}
 }
 

@@ -24,6 +24,9 @@ export class BoardComponent {
   /** Indices of slots selected for swapping. */
   readonly selectedSwapSlots = input<number[]>([]);
 
+  /** Accepted swap history for arrow indicators. */
+  readonly swapHistory = input<{slotA: number, slotB: number, byPlayer: number}[]>([]);
+
   /** Emitted when a player clicks an empty slot to place a card. */
   readonly slotPlace = output<number>();
 
@@ -52,5 +55,16 @@ export class BoardComponent {
 
   isSwapSelected(index: number): boolean {
     return this.selectedSwapSlots().includes(index);
+  }
+
+  getSwapArrowPath(slotA: number, slotB: number): string {
+    const x1 = 56 + slotA * 88;
+    const x2 = 56 + slotB * 88;
+    const midX = (x1 + x2) / 2;
+    return `M${x1},8 Q${midX},45 ${x2},8`;
+  }
+
+  getSwapDotX(slotIndex: number): number {
+    return 56 + slotIndex * 88;
   }
 }

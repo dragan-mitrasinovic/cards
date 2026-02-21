@@ -73,15 +73,24 @@ The players must reach an agreement on who goes first based on these preferences
   - An unused pass has no effect on the game.
 - The placement phase ends when both players have placed all 7 of their cards (14 cards total on the board).
 
+### Swaps
+
+Players can suggest swaps **during the placement phase** and during the **swap phase** (after all cards are placed):
+
+- A swap suggestion consists of choosing **any 2 occupied cards** on the board (the cards remain face-down).
+- The **other player must agree** to the swap for it to happen. If they disagree, the swap does not occur.
+- **During placement**: either player can suggest a swap at any time (not just on their turn). The game pauses until the partner responds. Suggesting a swap does **not** consume a turn.
+- Each player can suggest **unlimited** swaps, but at most **1 accepted swap per player** across the entire game. Rejected swaps do not count toward the limit.
+- Accepted swaps are visually marked with arrows linking the two swapped cards for the rest of the game.
+
 ### Swap Phase
 
 After all cards are placed and before the reveal:
 
 1. The player who went **first** in the placement phase gets to suggest a swap first.
-2. A swap suggestion consists of choosing **any 2 occupied cards** on the board (the cards remain face-down; the player does not know their values).
-3. The **other player must agree** to the swap for it to happen. If they disagree, the swap does not occur.
-4. Then the **second player** gets their swap opportunity, following the same rules.
-5. Each player has **exactly 1 swap opportunity** (they may choose not to suggest a swap).
+2. Then the **second player** gets their swap opportunity.
+3. If a player already had a swap accepted during placement, their turn is **automatically skipped**.
+4. If both players already used their swap during placement, the swap phase is skipped entirely.
 
 ### Reveal Phase
 

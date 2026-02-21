@@ -59,8 +59,8 @@
 LOBBY (waiting for 2nd player)
   → TURN_ORDER_PICK (both players pick preference)
   → TURN_ORDER_CONFLICT (if both want/don't want first — re-pick, transparent)
-  → PLACEMENT_PHASE (alternating turns, 7 cards each)
-  → SWAP_PHASE (first player suggests → accept/reject → second player's turn)
+  → PLACEMENT_PHASE (alternating turns, 7 cards each; inline swaps allowed)
+  → SWAP_PHASE (final swap opportunity; auto-skipped if swap already used)
   → REVEAL_PHASE (sequential reveal, left to right)
   → GAME_OVER (win/lose)
   → LOBBY or REMATCH
@@ -71,7 +71,8 @@ LOBBY (waiting for 2nd player)
 - **Sort order**: H1..H10, S1..S10, D1..D10, C1..C10
 - **Placement validation**: Correct turn, card in hand, slot empty
 - **Pass**: Each player gets exactly 1
-- **Swap validation**: Two adjacent occupied slots, other player must agree
+- **Swap validation**: Two distinct occupied slots, other player must agree; max 1 accepted per player
+- **Inline swaps**: Either player can suggest during placement (no turn restriction); game pauses until response
 - **Win check**: 14 revealed cards left→right (skip empty) in correct relative order
 - **Peek**: Player can view own placed cards (server verifies ownership)
 
@@ -86,9 +87,9 @@ LOBBY (waiting for 2nd player)
 | `place_card` | `{ cardId, slotIndex }` | Placement |
 | `pass` | `{}` | Placement |
 | `peek` | `{ slotIndex }` | Placement |
-| `suggest_swap` | `{ slotA, slotB }` | Swap |
+| `suggest_swap` | `{ slotA, slotB }` | Placement / Swap |
 | `skip_swap` | `{}` | Swap |
-| `respond_swap` | `{ accept: boolean }` | Swap |
+| `respond_swap` | `{ accept: boolean }` | Placement / Swap |
 | `play_again` | `{}` | Game Over |
 
 **Server → Client:**
@@ -156,8 +157,8 @@ LOBBY (waiting for 2nd player)
 2. Sees room code + shareable link → sends to friend
 3. Player B opens link (or enters code) → enters name → joins
 4. **Turn Order**: Both pick preference, see each other's choice, re-pick if conflict
-5. **Placement**: Alternate turns placing cards face-down. Can peek own cards. 1 pass each.
-6. **Swap**: First player suggests swap (2 adjacent) or skips → other accepts/rejects → second player's turn
+5. **Placement**: Alternate turns placing cards face-down. Can peek own cards. 1 pass each. Either player can suggest swaps (max 1 accepted per player).
+6. **Swap**: Final swap opportunity (auto-skipped if already used during placement)
 7. **Reveal**: Cards flip one by one, left to right
 8. **Result**: WIN or LOSE → "Play Again" or "Leave"
 

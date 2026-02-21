@@ -88,15 +88,15 @@
             <span class="font-semibold" [class.text-blue-600]="!gameState.isMyTurn()">{{ gameState.partnerName() }}</span>
           </div>
           <div class="flex items-center gap-4 text-sm text-gray-500">
-            @if (gameState.isMyTurn()) {
+            @if (gameState.isMyTurn() && !placementSwapMode()) {
               <span class="text-blue-600 font-medium">Your turn</span>
-            } @else {
+            } @else if (!placementSwapMode()) {
               <span>Waiting for {{ gameState.partnerName() }}…</span>
             }
             @if (!gameState.passUsed()[gameState.playerNumber() - 1]) {
               <button
                 (click)="pass()"
-                [disabled]="!gameState.isMyTurn()"
+                [disabled]="!gameState.isMyTurn() || placementSwapMode()"
                 class="px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Pass
@@ -107,21 +107,77 @@
           </div>
         </div>
 
+        <!-- Swap selection mode -->
+        @if (placementSwapMode()) {
+          <div class="flex flex-col items-center gap-2 mb-4 p-4 bg-purple-50 rounded-lg border border-purple-200">
+            <p class="text-purple-700 font-medium">Select two cards to swap</p>
+            @if (selectedSwapSlots().length === 1) {
+              <p class="text-sm text-purple-600">Selected slot {{ selectedSwapSlots()[0] + 1 }} — now click another card</p>
+            } @else {
+              <p class="text-sm text-gray-500">Click any two occupied slots on the board</p>
+            }
+            <button
+              (click)="cancelPlacementSwap()"
+              class="mt-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-md font-medium hover:bg-gray-300"
+            >
+              Cancel
+            </button>
+          </div>
+        }
+
         <!-- Board -->
         <app-board
-          [selectedCardIndex]="selectedCardIndex()"
-          (slotPlace)="onSlotPlace($event)"
-          (slotPeek)="peek($event)"
+          [selectedCardIndex]="placementSwapMode() ? -1 : selectedCardIndex()"
+          [swapMode]="placementSwapMode()"
+          [selectedSwapSlots]="gameState.swapPending() ? (gameState.swapSlots() ?? []) : selectedSwapSlots()"
+          [swapHistory]="gameState.swapHistory()"
+          (slotPlace)="onPlacementSlotAction($event)"
+          (slotPeek)="onPlacementPeekAction($event)"
         />
 
+        <!-- Swap pending notification (non-blocking) -->
+        @if (gameState.swapPending() && !placementSwapMode()) {
+          <div class="flex items-center justify-center gap-4 mt-3 px-4 py-2 bg-purple-50 rounded-lg border border-purple-200">
+            @if (gameState.swapSuggester() === gameState.playerNumber()) {
+              <span class="text-purple-700 text-sm font-medium">Swap suggested — waiting for {{ gameState.partnerName() }}…</span>
+            } @else {
+              <span class="text-purple-700 text-sm font-medium">{{ gameState.partnerName() }} wants to swap the highlighted cards</span>
+              <button (click)="respondSwap(true)" class="px-3 py-1 text-sm bg-green-500 text-white rounded-md font-medium hover:bg-green-600">
+                Accept
+              </button>
+              <button (click)="respondSwap(false)" class="px-3 py-1 text-sm bg-red-500 text-white rounded-md font-medium hover:bg-red-600">
+                Reject
+              </button>
+            }
+          </div>
+        }
+
         <!-- Hand -->
-        <div class="mt-4 pt-4 border-t border-gray-200">
-          <p class="text-sm text-gray-500 text-center mb-2">Your hand</p>
-          <app-hand
-            [selectedIndex]="selectedCardIndex()"
-            (cardSelected)="selectCard($event)"
-          />
-        </div>
+        @if (!placementSwapMode()) {
+          <div class="mt-4 pt-4 border-t border-gray-200">
+            <p class="text-sm text-gray-500 text-center mb-2">Your hand</p>
+            <app-hand
+              [selectedIndex]="selectedCardIndex()"
+              (cardSelected)="selectCard($event)"
+            />
+          </div>
+        }
+
+        <!-- Suggest Swap button -->
+        @if (!placementSwapMode() && !gameState.swapPending() && !gameState.swapAccepted()[gameState.playerNumber() - 1]) {
+          <div class="flex justify-center mt-4">
+            <button
+              (click)="enterPlacementSwapMode()"
+              class="px-4 py-2 text-sm bg-purple-100 text-purple-700 rounded-md font-medium hover:bg-purple-200"
+            >
+              Suggest Swap
+            </button>
+          </div>
+        } @else if (!placementSwapMode() && !gameState.swapPending() && gameState.swapAccepted()[gameState.playerNumber() - 1]) {
+          <div class="flex justify-center mt-4">
+            <span class="text-sm text-gray-400">Swap already used</span>
+          </div>
+        }
       </div>
     } @else if (gameState.phase() === 'swap') {
       <div class="swap-phase">
@@ -180,14 +236,18 @@
           <!-- Waiting for partner to suggest -->
           <div class="flex flex-col items-center gap-2 mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
             <p class="text-gray-600 font-medium">Waiting for {{ gameState.partnerName() }} to suggest a swap…</p>
+            @if (gameState.swapAccepted()[gameState.playerNumber() - 1]) {
+              <p class="text-sm text-gray-400">Your swap was already used</p>
+            }
           </div>
         }
 
         <!-- Board -->
         <app-board
           [selectedCardIndex]="-1"
-          [swapMode]="gameState.isMyTurn() && !gameState.swapPending()"
+          [swapMode]="gameState.isMyTurn() && !gameState.swapPending() && !gameState.swapAccepted()[gameState.playerNumber() - 1]"
           [selectedSwapSlots]="gameState.swapPending() ? (gameState.swapSlots() ?? []) : selectedSwapSlots()"
+          [swapHistory]="gameState.swapHistory()"
           (slotPlace)="onSwapSlotClick($event)"
           (slotPeek)="onSwapSlotClick($event)"
         />
@@ -223,6 +283,7 @@
         <app-board
           [selectedCardIndex]="-1"
           [revealMode]="true"
+          [swapHistory]="gameState.swapHistory()"
         />
       </div>
     } @else if (gameState.phase() === 'game_over') {
@@ -274,6 +335,7 @@
         <app-board
           [selectedCardIndex]="-1"
           [revealMode]="true"
+          [swapHistory]="gameState.swapHistory()"
         />
       </div>
     } @else {

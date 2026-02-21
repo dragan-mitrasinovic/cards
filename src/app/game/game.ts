@@ -32,6 +32,7 @@ export class GameComponent implements OnInit, OnDestroy {
   readonly partnerDisconnected = signal(false);
   readonly selectedCardIndex = signal(-1);
   readonly selectedSwapSlots = signal<number[]>([]);
+  readonly placementSwapMode = signal(false);
   joinName = '';
 
   private messagesSub?: Subscription;
@@ -145,6 +146,8 @@ export class GameComponent implements OnInit, OnDestroy {
           this.gameState.swapPending.set(true);
           this.gameState.swapSlots.set([suggested.slotA, suggested.slotB]);
           this.gameState.swapSuggester.set(suggested.byPlayer);
+          this.placementSwapMode.set(false);
+          this.selectedSwapSlots.set([]);
           break;
         }
         case 'swap_result': {
@@ -155,11 +158,22 @@ export class GameComponent implements OnInit, OnDestroy {
             board[swapResult.slotA] = board[swapResult.slotB];
             board[swapResult.slotB] = temp;
             this.gameState.board.set(board);
+
+            if (swapResult.byPlayer !== undefined) {
+              const accepted: [boolean, boolean] = [...this.gameState.swapAccepted()];
+              accepted[swapResult.byPlayer - 1] = true;
+              this.gameState.swapAccepted.set(accepted);
+
+              const history = [...this.gameState.swapHistory()];
+              history.push({ slotA: swapResult.slotA, slotB: swapResult.slotB, byPlayer: swapResult.byPlayer });
+              this.gameState.swapHistory.set(history);
+            }
           }
           this.gameState.swapPending.set(false);
           this.gameState.swapSlots.set(null);
           this.gameState.swapSuggester.set(0);
           this.selectedSwapSlots.set([]);
+          this.placementSwapMode.set(false);
           break;
         }
         case 'reveal_card': {
@@ -204,6 +218,10 @@ export class GameComponent implements OnInit, OnDestroy {
           const err = msg as ErrorMessage;
           if (this.needsJoin()) {
             this.joinError.set(err.message);
+          }
+          if (this.placementSwapMode()) {
+            this.placementSwapMode.set(false);
+            this.selectedSwapSlots.set([]);
           }
           break;
         }
@@ -278,6 +296,7 @@ export class GameComponent implements OnInit, OnDestroy {
   suggestSwap(slotA: number, slotB: number): void {
     this.ws.send({ type: 'suggest_swap', slotA, slotB });
     this.selectedSwapSlots.set([]);
+    this.placementSwapMode.set(false);
   }
 
   skipSwap(): void {
@@ -286,6 +305,33 @@ export class GameComponent implements OnInit, OnDestroy {
 
   respondSwap(accept: boolean): void {
     this.ws.send({ type: 'respond_swap', accept });
+  }
+
+  enterPlacementSwapMode(): void {
+    this.placementSwapMode.set(true);
+    this.selectedCardIndex.set(-1);
+    this.selectedSwapSlots.set([]);
+  }
+
+  cancelPlacementSwap(): void {
+    this.placementSwapMode.set(false);
+    this.selectedSwapSlots.set([]);
+  }
+
+  onPlacementSlotAction(slotIndex: number): void {
+    if (this.placementSwapMode()) {
+      this.onSwapSlotClick(slotIndex);
+    } else {
+      this.onSlotPlace(slotIndex);
+    }
+  }
+
+  onPlacementPeekAction(slotIndex: number): void {
+    if (this.placementSwapMode()) {
+      this.onSwapSlotClick(slotIndex);
+    } else {
+      this.peek(slotIndex);
+    }
   }
 
   playAgain(): void {

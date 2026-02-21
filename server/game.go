@@ -121,11 +121,14 @@ type Game struct {
 	HandUsed    [2][7]bool  // which cards from each hand have been placed
 	Picks       [2]Preference // turn order preferences (index 0 = player 1)
 
-	// Swap phase state
-	SwapsCompleted int      // 0, 1, or 2
-	SwapPending    bool     // whether a swap suggestion is awaiting response
-	SwapSlots      [2]int   // the two slots in the pending suggestion
-	SwapSuggester  int      // player who made the pending suggestion (1 or 2)
+	// Swap state
+	SwapsCompleted     int      // 0, 1, or 2 (swap phase turns completed)
+	SwapPending        bool     // whether a swap suggestion is awaiting response
+	SwapSlots          [2]int   // the two slots in the pending suggestion
+	SwapSuggester      int      // player who made the pending suggestion (1 or 2)
+	SwapSuggestedPhase Phase    // the phase when the pending swap was suggested
+	SwapAccepted       [2]bool      // whether each player has had a swap accepted (max 1 each)
+	SwapHistory        []SwapRecord // accepted swaps for visual indicators
 }
 
 // SetPick records a player's turn order preference. playerNumber is 1 or 2.
@@ -254,17 +257,20 @@ func (g *Game) AllCardsPlaced() bool {
 	return g.CardsPlaced[0] == 7 && g.CardsPlaced[1] == 7
 }
 
-// SuggestSwap records a swap suggestion from the current swap player.
-// slotA and slotB must be distinct occupied slots.
+// SuggestSwap records a swap suggestion. Allowed during placement (any player)
+// and swap phase (current turn player only). slotA and slotB must be distinct occupied slots.
 func (g *Game) SuggestSwap(playerNumber, slotA, slotB int) error {
-	if g.Phase != PhaseSwap {
-		return fmt.Errorf("not in swap phase")
+	if g.Phase != PhaseSwap && g.Phase != PhasePlacement {
+		return fmt.Errorf("swaps not allowed in this phase")
 	}
-	if g.CurrentTurn != playerNumber {
+	if g.Phase == PhaseSwap && g.CurrentTurn != playerNumber {
 		return fmt.Errorf("not your turn to suggest a swap")
 	}
 	if g.SwapPending {
 		return fmt.Errorf("a swap is already pending")
+	}
+	if g.SwapAccepted[playerNumber-1] {
+		return fmt.Errorf("you have already used your swap")
 	}
 	if slotA < 0 || slotA >= BoardSize || slotB < 0 || slotB >= BoardSize {
 		return fmt.Errorf("invalid slot index")
@@ -283,13 +289,14 @@ func (g *Game) SuggestSwap(playerNumber, slotA, slotB int) error {
 	g.SwapPending = true
 	g.SwapSlots = [2]int{slotA, slotB}
 	g.SwapSuggester = playerNumber
+	g.SwapSuggestedPhase = g.Phase
 	return nil
 }
 
 // RespondSwap handles the other player's response to a pending swap suggestion.
 func (g *Game) RespondSwap(playerNumber int, accept bool) error {
-	if g.Phase != PhaseSwap {
-		return fmt.Errorf("not in swap phase")
+	if g.Phase != PhaseSwap && g.Phase != PhasePlacement {
+		return fmt.Errorf("swaps not allowed in this phase")
 	}
 	if !g.SwapPending {
 		return fmt.Errorf("no swap pending")
@@ -302,10 +309,19 @@ func (g *Game) RespondSwap(playerNumber int, accept bool) error {
 		slotA, slotB := g.SwapSlots[0], g.SwapSlots[1]
 		g.Board[slotA], g.Board[slotB] = g.Board[slotB], g.Board[slotA]
 		g.BoardOwner[slotA], g.BoardOwner[slotB] = g.BoardOwner[slotB], g.BoardOwner[slotA]
+		g.SwapAccepted[g.SwapSuggester-1] = true
+		g.SwapHistory = append(g.SwapHistory, SwapRecord{
+			SlotA:    slotA,
+			SlotB:    slotB,
+			ByPlayer: g.SwapSuggester,
+		})
 	}
 
 	g.SwapPending = false
-	g.advanceSwap()
+	// Only advance swap phase if the suggestion was made during swap phase
+	if g.Phase == PhaseSwap && g.SwapSuggestedPhase == PhaseSwap {
+		g.advanceSwap()
+	}
 	return nil
 }
 
@@ -337,6 +353,33 @@ func (g *Game) advanceSwap() {
 	} else {
 		g.CurrentTurn = 1
 	}
+	g.autoSkipSwaps()
+}
+
+// autoSkipSwaps auto-skips swap turns for players who already used their swap.
+func (g *Game) autoSkipSwaps() {
+	for g.Phase == PhaseSwap && g.SwapsCompleted < 2 {
+		if !g.SwapAccepted[g.CurrentTurn-1] {
+			return
+		}
+		g.SwapsCompleted++
+		if g.SwapsCompleted >= 2 {
+			g.Phase = PhaseReveal
+			return
+		}
+		if g.CurrentTurn == 1 {
+			g.CurrentTurn = 2
+		} else {
+			g.CurrentTurn = 1
+		}
+	}
+}
+
+// SwapRecord tracks an accepted swap for visual indicators.
+type SwapRecord struct {
+	SlotA    int `json:"slotA"`
+	SlotB    int `json:"slotB"`
+	ByPlayer int `json:"byPlayer"`
 }
 
 // RevealEntry represents a single card to be revealed during the reveal phase.
@@ -381,6 +424,7 @@ func (g *Game) advanceTurn() {
 	if g.AllCardsPlaced() {
 		g.Phase = PhaseSwap
 		g.CurrentTurn = g.FirstPlayer
+		g.autoSkipSwaps()
 		return
 	}
 	if g.CurrentTurn == 1 {

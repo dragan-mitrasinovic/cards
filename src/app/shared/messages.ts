@@ -154,6 +154,7 @@ export interface SwapResultMessage extends BaseMessage {
   accepted: boolean;
   slotA?: number;
   slotB?: number;
+  byPlayer?: number;
 }
 
 export interface RevealCardMessage extends BaseMessage {
