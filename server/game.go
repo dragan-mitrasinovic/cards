@@ -425,6 +425,15 @@ type RevealEntry struct {
 	Card      Card `json:"card"`
 }
 
+// FinalizeReveal transitions to game over and returns the reveal order and win status.
+func (g *Game) FinalizeReveal() ([]RevealEntry, bool) {
+	order := g.RevealOrder()
+	win := g.CheckWin()
+	g.Phase = PhaseGameOver
+
+	return order, win
+}
+
 // RevealOrder returns the placed cards in left-to-right board order (by slot index).
 // Each entry contains the slot index and the card at that slot.
 func (g *Game) RevealOrder() []RevealEntry {

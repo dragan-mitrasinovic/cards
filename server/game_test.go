@@ -1007,3 +1007,49 @@ func TestAutoSkipSwaps(t *testing.T) {
 		}
 	})
 }
+
+func TestFinalizeReveal(t *testing.T) {
+	t.Run("transitions to game over and returns results", func(t *testing.T) {
+		g := &Game{Phase: PhaseReveal}
+		cards := []Card{
+			{Hearts, 1}, {Hearts, 2}, {Hearts, 3},
+		}
+
+		for i, c := range cards {
+			card := c
+			g.Board[i] = &card
+		}
+
+		order, win := g.FinalizeReveal()
+
+		if g.Phase != PhaseGameOver {
+			t.Errorf("expected game_over phase, got %s", g.Phase)
+		}
+
+		if !win {
+			t.Error("expected win for correctly sorted cards")
+		}
+
+		if len(order) != 3 {
+			t.Errorf("expected 3 reveal entries, got %d", len(order))
+		}
+	})
+
+	t.Run("returns loss for unsorted cards", func(t *testing.T) {
+		g := &Game{Phase: PhaseReveal}
+		h2 := Card{Hearts, 2}
+		h1 := Card{Hearts, 1}
+		g.Board[0] = &h2
+		g.Board[1] = &h1
+
+		_, win := g.FinalizeReveal()
+
+		if win {
+			t.Error("expected loss for unsorted cards")
+		}
+
+		if g.Phase != PhaseGameOver {
+			t.Errorf("expected game_over phase, got %s", g.Phase)
+		}
+	})
+}
