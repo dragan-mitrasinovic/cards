@@ -55,9 +55,11 @@ func ShuffleDeck(deck []Card) error {
 		if err != nil {
 			return fmt.Errorf("shuffling deck: %w", err)
 		}
+
 		j := int(n.Int64())
 		deck[i], deck[j] = deck[j], deck[i]
 	}
+
 	return nil
 }
 
@@ -67,11 +69,15 @@ func Deal() ([7]Card, [7]Card, error) {
 	if err := ShuffleDeck(deck); err != nil {
 		return [7]Card{}, [7]Card{}, err
 	}
+
 	var hand1, hand2 [7]Card
+
 	copy(hand1[:], deck[0:7])
 	copy(hand2[:], deck[7:14])
+
 	sort.Slice(hand1[:], func(i, j int) bool { return hand1[i].SortIndex() < hand1[j].SortIndex() })
 	sort.Slice(hand2[:], func(i, j int) bool { return hand2[i].SortIndex() < hand2[j].SortIndex() })
+
 	return hand1, hand2, nil
 }
 
@@ -105,6 +111,7 @@ func ValidPreference(p string) bool {
 	case PrefFirst, PrefNeutral, PrefNoFirst:
 		return true
 	}
+
 	return false
 }
 
@@ -117,16 +124,16 @@ type Game struct {
 	FirstPlayer int            // 1 or 2; set after turn order resolution
 	CurrentTurn int            // 1 or 2
 	PassUsed    [2]bool
-	CardsPlaced [2]int      // how many cards each player has placed
-	HandUsed    [2][7]bool  // which cards from each hand have been placed
+	CardsPlaced [2]int        // how many cards each player has placed
+	HandUsed    [2][7]bool    // which cards from each hand have been placed
 	Picks       [2]Preference // turn order preferences (index 0 = player 1)
 
 	// Swap state
-	SwapsCompleted     int      // 0, 1, or 2 (swap phase turns completed)
-	SwapPending        bool     // whether a swap suggestion is awaiting response
-	SwapSlots          [2]int   // the two slots in the pending suggestion
-	SwapSuggester      int      // player who made the pending suggestion (1 or 2)
-	SwapSuggestedPhase Phase    // the phase when the pending swap was suggested
+	SwapsCompleted     int          // 0, 1, or 2 (swap phase turns completed)
+	SwapPending        bool         // whether a swap suggestion is awaiting response
+	SwapSlots          [2]int       // the two slots in the pending suggestion
+	SwapSuggester      int          // player who made the pending suggestion (1 or 2)
+	SwapSuggestedPhase Phase        // the phase when the pending swap was suggested
 	SwapAccepted       [2]bool      // whether each player has had a swap accepted (max 1 each)
 	SwapHistory        []SwapRecord // accepted swaps for visual indicators
 }
@@ -165,6 +172,7 @@ func (g *Game) ResolveTurnOrder() (int, bool) {
 		if err != nil {
 			return 1, false // fallback
 		}
+
 		return int(n.Int64()) + 1, false
 	}
 }
@@ -180,6 +188,7 @@ func NewGame() (*Game, error) {
 	if err != nil {
 		return nil, fmt.Errorf("creating game: %w", err)
 	}
+
 	return &Game{
 		Phase: PhaseTurnOrderPick,
 		Hands: [2][7]Card{hand1, hand2},
@@ -192,19 +201,24 @@ func (g *Game) PlaceCard(playerNumber, cardIndex, slotIndex int) error {
 	if g.Phase != PhasePlacement {
 		return fmt.Errorf("not in placement phase")
 	}
+
 	if g.CurrentTurn != playerNumber {
 		return fmt.Errorf("not your turn")
 	}
+
 	idx := playerNumber - 1
 	if cardIndex < 0 || cardIndex >= 7 {
 		return fmt.Errorf("invalid card index")
 	}
+
 	if g.HandUsed[idx][cardIndex] {
 		return fmt.Errorf("card already placed")
 	}
+
 	if slotIndex < 0 || slotIndex >= BoardSize {
 		return fmt.Errorf("invalid slot index")
 	}
+
 	if g.Board[slotIndex] != nil {
 		return fmt.Errorf("slot already occupied")
 	}
@@ -214,6 +228,7 @@ func (g *Game) PlaceCard(playerNumber, cardIndex, slotIndex int) error {
 	g.BoardOwner[slotIndex] = playerNumber
 	g.HandUsed[idx][cardIndex] = true
 	g.CardsPlaced[idx]++
+
 	g.advanceTurn()
 	return nil
 }
@@ -223,15 +238,19 @@ func (g *Game) UsePass(playerNumber int) error {
 	if g.Phase != PhasePlacement {
 		return fmt.Errorf("not in placement phase")
 	}
+
 	if g.CurrentTurn != playerNumber {
 		return fmt.Errorf("not your turn")
 	}
+
 	idx := playerNumber - 1
 	if g.PassUsed[idx] {
 		return fmt.Errorf("pass already used")
 	}
+
 	g.PassUsed[idx] = true
 	g.advanceTurn()
+
 	return nil
 }
 
@@ -249,6 +268,7 @@ func (g *Game) Peek(playerNumber, slotIndex int) (*Card, error) {
 	if g.BoardOwner[slotIndex] != playerNumber {
 		return nil, fmt.Errorf("not your card")
 	}
+
 	return g.Board[slotIndex], nil
 }
 
@@ -263,25 +283,32 @@ func (g *Game) SuggestSwap(playerNumber, slotA, slotB int) error {
 	if g.Phase != PhaseSwap && g.Phase != PhasePlacement {
 		return fmt.Errorf("swaps not allowed in this phase")
 	}
+
 	if g.Phase == PhaseSwap && g.CurrentTurn != playerNumber {
 		return fmt.Errorf("not your turn to suggest a swap")
 	}
+
 	if g.SwapPending {
 		return fmt.Errorf("a swap is already pending")
 	}
+
 	if g.SwapAccepted[playerNumber-1] {
 		return fmt.Errorf("you have already used your swap")
 	}
+
 	if slotA < 0 || slotA >= BoardSize || slotB < 0 || slotB >= BoardSize {
 		return fmt.Errorf("invalid slot index")
 	}
+
 	if slotA == slotB {
 		return fmt.Errorf("slots must be different")
 	}
+
 	// Normalize so slotA < slotB
 	if slotA > slotB {
 		slotA, slotB = slotB, slotA
 	}
+
 	if g.Board[slotA] == nil || g.Board[slotB] == nil {
 		return fmt.Errorf("both slots must be occupied")
 	}
@@ -290,6 +317,7 @@ func (g *Game) SuggestSwap(playerNumber, slotA, slotB int) error {
 	g.SwapSlots = [2]int{slotA, slotB}
 	g.SwapSuggester = playerNumber
 	g.SwapSuggestedPhase = g.Phase
+
 	return nil
 }
 
@@ -298,9 +326,11 @@ func (g *Game) RespondSwap(playerNumber int, accept bool) error {
 	if g.Phase != PhaseSwap && g.Phase != PhasePlacement {
 		return fmt.Errorf("swaps not allowed in this phase")
 	}
+
 	if !g.SwapPending {
 		return fmt.Errorf("no swap pending")
 	}
+
 	if playerNumber == g.SwapSuggester {
 		return fmt.Errorf("cannot respond to your own swap")
 	}
@@ -322,6 +352,7 @@ func (g *Game) RespondSwap(playerNumber int, accept bool) error {
 	if g.Phase == PhaseSwap && g.SwapSuggestedPhase == PhaseSwap {
 		g.advanceSwap()
 	}
+
 	return nil
 }
 
@@ -330,9 +361,11 @@ func (g *Game) SkipSwap(playerNumber int) error {
 	if g.Phase != PhaseSwap {
 		return fmt.Errorf("not in swap phase")
 	}
+
 	if g.CurrentTurn != playerNumber {
 		return fmt.Errorf("not your turn to suggest a swap")
 	}
+
 	if g.SwapPending {
 		return fmt.Errorf("a swap is already pending")
 	}
@@ -348,11 +381,13 @@ func (g *Game) advanceSwap() {
 		g.Phase = PhaseReveal
 		return
 	}
+
 	if g.CurrentTurn == 1 {
 		g.CurrentTurn = 2
 	} else {
 		g.CurrentTurn = 1
 	}
+
 	g.autoSkipSwaps()
 }
 
@@ -362,11 +397,13 @@ func (g *Game) autoSkipSwaps() {
 		if !g.SwapAccepted[g.CurrentTurn-1] {
 			return
 		}
+
 		g.SwapsCompleted++
 		if g.SwapsCompleted >= 2 {
 			g.Phase = PhaseReveal
 			return
 		}
+
 		if g.CurrentTurn == 1 {
 			g.CurrentTurn = 2
 		} else {
@@ -397,6 +434,7 @@ func (g *Game) RevealOrder() []RevealEntry {
 			entries = append(entries, RevealEntry{SlotIndex: i, Card: *card})
 		}
 	}
+
 	return entries
 }
 
@@ -413,8 +451,10 @@ func (g *Game) CheckWin() bool {
 		if idx <= prev {
 			return false
 		}
+
 		prev = idx
 	}
+
 	return true
 }
 
@@ -427,6 +467,7 @@ func (g *Game) advanceTurn() {
 		g.autoSkipSwaps()
 		return
 	}
+
 	if g.CurrentTurn == 1 {
 		g.CurrentTurn = 2
 	} else {

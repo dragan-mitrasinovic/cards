@@ -42,6 +42,7 @@ func (c *Client) SendMsg(msg any) {
 		slog.Error("failed to marshal message", "error", err)
 		return
 	}
+
 	select {
 	case c.send <- data:
 	default:
@@ -402,6 +403,7 @@ func (c *Client) handlePlaceCard(raw []byte) {
 		win = game.CheckWin()
 		game.Phase = PhaseGameOver
 	}
+
 	p1 := c.room.Players[0]
 	p2 := c.room.Players[1]
 	c.room.mu.Unlock()
@@ -575,6 +577,7 @@ func (c *Client) handleSkipSwap() {
 		win = game.CheckWin()
 		game.Phase = PhaseGameOver
 	}
+
 	p1 := c.room.Players[0]
 	p2 := c.room.Players[1]
 	c.room.mu.Unlock()
@@ -644,6 +647,7 @@ func (c *Client) handleRespondSwap(raw []byte) {
 		win = game.CheckWin()
 		game.Phase = PhaseGameOver
 	}
+
 	p1 := c.room.Players[0]
 	p2 := c.room.Players[1]
 	c.room.mu.Unlock()
@@ -656,6 +660,7 @@ func (c *Client) handleRespondSwap(raw []byte) {
 		result.SlotB = slotB
 		result.ByPlayer = suggester
 	}
+
 	if p1 != nil {
 		p1.SendMsg(result)
 	}
@@ -713,6 +718,7 @@ func (c *Client) sendRevealCards(p1, p2 *Client, order []RevealEntry, win bool) 
 	for _, entry := range order {
 		boardCards = append(boardCards, BoardCard{SlotIndex: entry.SlotIndex, Card: entry.Card})
 	}
+
 	result := GameResultMsg{
 		Type:  "game_result",
 		Win:   win,
@@ -795,10 +801,12 @@ func (c *Client) cleanup() {
 				PlayerName: c.name,
 			})
 		}
-		empty := c.room.RemovePlayer(c)
-		if empty {
+
+		c.room.RemovePlayer(c)
+		if c.room.IsEmpty() {
 			c.rooms.RemoveRoom(c.room.Code)
 		}
+
 		slog.Info("player disconnected", "player", c.name, "room", c.room.Code)
 	}
 }

@@ -18,6 +18,8 @@ applyTo: '**/*.go'
 - Use `gofmt` / `goimports` for formatting — never commit unformatted code
 - Keep functions short and focused on a single task
 - Use meaningful, concise names; avoid stuttering (e.g., `room.Room` is bad, `room.State` is good)
+- Add a blank line after a closing brace (`}`) before the next statement (e.g., before a `return`)
+- Separate logical sequences within a function with blank lines for readability
 
 ## Error Handling
 - Always check and handle errors explicitly — never use `_` to discard errors

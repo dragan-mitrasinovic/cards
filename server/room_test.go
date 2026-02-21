@@ -9,9 +9,11 @@ func TestGenerateRoomCode(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
+
 	if len(code) != roomCodeLength {
 		t.Errorf("expected code length %d, got %d", roomCodeLength, len(code))
 	}
+
 	for _, ch := range code {
 		if !contains(roomCodeChars, byte(ch)) {
 			t.Errorf("code contains invalid character: %c", ch)
@@ -21,6 +23,7 @@ func TestGenerateRoomCode(t *testing.T) {
 
 func TestGenerateRoomCodeUniqueness(t *testing.T) {
 	seen := make(map[string]bool)
+
 	for i := 0; i < 100; i++ {
 		code, err := generateRoomCode()
 		if err != nil {
@@ -28,6 +31,7 @@ func TestGenerateRoomCodeUniqueness(t *testing.T) {
 		}
 		seen[code] = true
 	}
+
 	if len(seen) < 90 {
 		t.Errorf("expected at least 90 unique codes out of 100, got %d", len(seen))
 	}
@@ -40,6 +44,7 @@ func TestRoomManagerCreateAndGet(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
+
 	if room.Code == "" {
 		t.Fatal("expected non-empty room code")
 	}
@@ -50,22 +55,10 @@ func TestRoomManagerCreateAndGet(t *testing.T) {
 	}
 }
 
-func TestRoomManagerGetCaseInsensitive(t *testing.T) {
-	rm := NewRoomManager()
-	room, err := rm.CreateRoom()
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	got := rm.GetRoom(room.Code)
-	if got == nil {
-		t.Fatal("expected to find room with original code")
-	}
-}
-
 func TestRoomManagerGetNotFound(t *testing.T) {
 	rm := NewRoomManager()
 	got := rm.GetRoom("ZZZZ")
+
 	if got != nil {
 		t.Error("expected nil for non-existent room")
 	}
@@ -74,11 +67,13 @@ func TestRoomManagerGetNotFound(t *testing.T) {
 func TestRoomManagerRemoveRoom(t *testing.T) {
 	rm := NewRoomManager()
 	room, err := rm.CreateRoom()
+
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
 	rm.RemoveRoom(room.Code)
+
 	got := rm.GetRoom(room.Code)
 	if got != nil {
 		t.Error("expected nil after removing room")
@@ -121,13 +116,13 @@ func TestRoomRemovePlayer(t *testing.T) {
 	room.AddPlayer(c1)
 	room.AddPlayer(c2)
 
-	empty := room.RemovePlayer(c1)
-	if empty {
+	room.RemovePlayer(c1)
+	if room.IsEmpty() {
 		t.Error("room should not be empty after removing one of two players")
 	}
 
-	empty = room.RemovePlayer(c2)
-	if !empty {
+	room.RemovePlayer(c2)
+	if !room.IsEmpty() {
 		t.Error("room should be empty after removing both players")
 	}
 }

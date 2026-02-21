@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log/slog"
 	"math/big"
-	"strings"
 	"sync"
 )
 
@@ -37,11 +36,12 @@ func (r *Room) AddPlayer(c *Client) (int, error) {
 		r.Players[1] = c
 		return 2, nil
 	}
+
 	return 0, fmt.Errorf("room %s is full", r.Code)
 }
 
-// RemovePlayer removes a client from the room. Returns true if the room is now empty.
-func (r *Room) RemovePlayer(c *Client) bool {
+// RemovePlayer removes a client from the room.
+func (r *Room) RemovePlayer(c *Client) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -51,6 +51,13 @@ func (r *Room) RemovePlayer(c *Client) bool {
 			break
 		}
 	}
+}
+
+// IsEmpty reports whether the room has no players.
+func (r *Room) IsEmpty() bool {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
 	return r.Players[0] == nil && r.Players[1] == nil
 }
 
@@ -64,6 +71,7 @@ func (r *Room) Partner(c *Client) *Client {
 			return p
 		}
 	}
+
 	return nil
 }
 
@@ -78,10 +86,12 @@ func (r *Room) StartGame() (*Game, error) {
 	if r.Players[0] == nil || r.Players[1] == nil {
 		return nil, fmt.Errorf("room %s: both players required to start", r.Code)
 	}
+
 	game, err := NewGame()
 	if err != nil {
 		return nil, err
 	}
+
 	r.Game = game
 	return game, nil
 }
@@ -94,6 +104,7 @@ func (r *Room) GamePhase() Phase {
 	if r.Game == nil {
 		return PhaseLobby
 	}
+
 	return r.Game.Phase
 }
 
@@ -105,10 +116,12 @@ func (r *Room) ResetGame() (*Game, error) {
 	if r.Players[0] == nil || r.Players[1] == nil {
 		return nil, fmt.Errorf("room %s: both players required for rematch", r.Code)
 	}
+
 	game, err := NewGame()
 	if err != nil {
 		return nil, err
 	}
+
 	r.Game = game
 	r.PlayAgainReady = [2]bool{}
 	return game, nil
@@ -144,26 +157,30 @@ func (rm *RoomManager) CreateRoom() (*Room, error) {
 			return room, nil
 		}
 	}
+
 	return nil, fmt.Errorf("failed to generate unique room code after 100 attempts")
 }
 
-// GetRoom retrieves a room by its code (case-insensitive).
+// GetRoom retrieves a room by its code.
 func (rm *RoomManager) GetRoom(code string) *Room {
 	rm.mu.RLock()
 	defer rm.mu.RUnlock()
-	return rm.rooms[strings.ToUpper(code)]
+
+	return rm.rooms[code]
 }
 
 // RemoveRoom removes a room by its code.
 func (rm *RoomManager) RemoveRoom(code string) {
 	rm.mu.Lock()
 	defer rm.mu.Unlock()
+
 	delete(rm.rooms, code)
 	slog.Info("room removed", "code", code)
 }
 
 func generateRoomCode() (string, error) {
 	code := make([]byte, roomCodeLength)
+
 	for i := range code {
 		n, err := rand.Int(rand.Reader, big.NewInt(int64(len(roomCodeChars))))
 		if err != nil {
@@ -171,5 +188,6 @@ func generateRoomCode() (string, error) {
 		}
 		code[i] = roomCodeChars[n.Int64()]
 	}
+
 	return string(code), nil
 }
