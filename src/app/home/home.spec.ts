@@ -24,7 +24,7 @@ describe('HomeComponent', () => {
     const fixture = TestBed.createComponent(HomeComponent);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
-    const createBtn = compiled.querySelector('.btn-primary') as HTMLButtonElement;
+    const createBtn = compiled.querySelector('button') as HTMLButtonElement;
     expect(createBtn.disabled).toBe(true);
   });
 });

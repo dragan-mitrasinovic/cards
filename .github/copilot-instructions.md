@@ -24,7 +24,7 @@ The tech stack is being defined iteratively. Only the items listed below are con
 - **Platform:** Web application (browser-based)
 - **Frontend:** Angular 21 (TypeScript)
 - **Backend:** Go with gorilla/websocket (in `/server` directory)
-- **Styling:** CSS (plain, no preprocessor)
+- **Styling:** Tailwind CSS v4 (utility-first)
 - **SSR/SSG:** Disabled (client-side only)
 - **Testing:** Jasmine + Karma (Angular default)
 - **Package Manager:** npm (frontend), Go modules (backend)

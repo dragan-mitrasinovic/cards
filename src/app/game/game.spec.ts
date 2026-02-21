@@ -27,6 +27,6 @@ describe('GameComponent', () => {
     const fixture = TestBed.createComponent(GameComponent);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.game-id')?.textContent).toContain('ABC123');
+    expect(compiled.querySelector('.font-mono')?.textContent).toContain('ABC123');
   });
 });
