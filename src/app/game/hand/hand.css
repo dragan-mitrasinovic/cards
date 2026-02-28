@@ -2,6 +2,7 @@
   width: 100%;
   overflow-x: auto;
   padding: 16px 0;
+  -webkit-overflow-scrolling: touch;
 }
 
 .hand {
@@ -10,4 +11,15 @@
   justify-content: center;
   min-width: min-content;
   padding: 0 16px;
+}
+
+@media (max-width: 767px) {
+  :host {
+    --card-width: 56px;
+    --card-height: 84px;
+  }
+
+  .hand {
+    gap: 4px;
+  }
 }

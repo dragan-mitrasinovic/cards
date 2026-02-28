@@ -57,14 +57,27 @@ export class BoardComponent {
     return this.selectedSwapSlots().includes(index);
   }
 
+  /** Card width used for SVG arrow calculations. */
+  private readonly cardWidth = 80;
+  private readonly boardGap = 8;
+
   getSwapArrowPath(slotA: number, slotB: number): string {
-    const x1 = 56 + slotA * 88;
-    const x2 = 56 + slotB * 88;
+    const halfCard = this.cardWidth / 2;
+    const step = this.cardWidth + this.boardGap;
+    const x1 = 16 + halfCard + slotA * step;
+    const x2 = 16 + halfCard + slotB * step;
     const midX = (x1 + x2) / 2;
     return `M${x1},8 Q${midX},45 ${x2},8`;
   }
 
   getSwapDotX(slotIndex: number): number {
-    return 56 + slotIndex * 88;
+    const halfCard = this.cardWidth / 2;
+    const step = this.cardWidth + this.boardGap;
+    return 16 + halfCard + slotIndex * step;
+  }
+
+  get svgViewBox(): string {
+    const totalWidth = 15 * this.cardWidth + 14 * this.boardGap + 2 * 16;
+    return `0 0 ${totalWidth} 50`;
   }
 }

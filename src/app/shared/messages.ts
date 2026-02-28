@@ -65,7 +65,13 @@ export interface PlayAgainMessage extends BaseMessage {
   type: 'play_again';
 }
 
-export type ClientMessage = EchoMessage | CreateRoomMessage | JoinRoomMessage | TurnOrderPickMessage | PlaceCardMessage | PassMessage | PeekMessage | SuggestSwapMessage | SkipSwapMessage | RespondSwapMessage | PlayAgainMessage;
+export interface ReconnectMessage extends BaseMessage {
+  type: 'reconnect';
+  name: string;
+  roomCode: string;
+}
+
+export type ClientMessage = EchoMessage | CreateRoomMessage | JoinRoomMessage | TurnOrderPickMessage | PlaceCardMessage | PassMessage | PeekMessage | SuggestSwapMessage | SkipSwapMessage | RespondSwapMessage | PlayAgainMessage | ReconnectMessage;
 
 // --- Server → Client messages ---
 
@@ -97,6 +103,11 @@ export interface PlayerDisconnectedMessage extends BaseMessage {
   playerName: string;
 }
 
+export interface PlayerReconnectedMessage extends BaseMessage {
+  type: 'player_reconnected';
+  playerName: string;
+}
+
 export interface TurnOrderPromptMessage extends BaseMessage {
   type: 'turn_order_prompt';
   hand: Card[];
@@ -114,6 +125,7 @@ export interface GameStartMessage extends BaseMessage {
   type: 'game_start';
   hand: Card[];
   firstPlayer: number;
+  handUsed?: boolean[];
 }
 
 export interface YourTurnMessage extends BaseMessage {
@@ -181,6 +193,7 @@ export type ServerMessage =
   | RoomCreatedMessage
   | PlayerJoinedMessage
   | PlayerDisconnectedMessage
+  | PlayerReconnectedMessage
   | TurnOrderPromptMessage
   | TurnOrderResultMessage
   | GameStartMessage

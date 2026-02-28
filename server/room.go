@@ -6,13 +6,23 @@ import (
 	"log/slog"
 	"math/big"
 	"sync"
+	"time"
 )
 
 const (
 	roomCodeLength = 4
 	// Ambiguous characters excluded: 0/O, 1/I/L
 	roomCodeChars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+
+	// gracePeriod is how long a room stays alive after a player disconnects.
+	gracePeriod = 30 * time.Second
 )
+
+// DisconnectedPlayer holds info about a player who disconnected but may reconnect.
+type DisconnectedPlayer struct {
+	Name         string
+	PlayerNumber int
+}
 
 // Room represents a game room with up to two players.
 type Room struct {
@@ -21,6 +31,10 @@ type Room struct {
 	Game           *Game
 	PlayAgainReady [2]bool // tracks which players want a rematch
 	mu             sync.Mutex
+
+	// Disconnection tracking
+	Disconnected [2]*DisconnectedPlayer // info about disconnected players
+	graceTimers  [2]*time.Timer         // cleanup timers per player slot
 }
 
 // AddPlayer adds a client to the room. Returns the assigned player number (1 or 2).
@@ -40,7 +54,7 @@ func (r *Room) AddPlayer(c *Client) (int, error) {
 	return 0, fmt.Errorf("room %s is full", r.Code)
 }
 
-// RemovePlayer removes a client from the room.
+// RemovePlayer removes a client from the room permanently.
 func (r *Room) RemovePlayer(c *Client) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -48,17 +62,94 @@ func (r *Room) RemovePlayer(c *Client) {
 	for i, p := range r.Players {
 		if p == c {
 			r.Players[i] = nil
+			r.Disconnected[i] = nil
+
+			if r.graceTimers[i] != nil {
+				r.graceTimers[i].Stop()
+				r.graceTimers[i] = nil
+			}
+
 			break
 		}
 	}
 }
 
-// IsEmpty reports whether the room has no players.
+// DisconnectPlayer marks a player as disconnected and starts a grace timer.
+// Returns the player's slot index, or -1 if not found.
+func (r *Room) DisconnectPlayer(c *Client, rm *RoomManager) int {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	idx := -1
+	for i, p := range r.Players {
+		if p == c {
+			idx = i
+			break
+		}
+	}
+
+	if idx == -1 {
+		return -1
+	}
+
+	r.Disconnected[idx] = &DisconnectedPlayer{
+		Name:         c.name,
+		PlayerNumber: c.playerNumber,
+	}
+	r.Players[idx] = nil
+
+	// Start grace timer — permanently remove after timeout
+	r.graceTimers[idx] = time.AfterFunc(gracePeriod, func() {
+		r.mu.Lock()
+		r.Disconnected[idx] = nil
+		r.graceTimers[idx] = nil
+		empty := r.Players[0] == nil && r.Players[1] == nil &&
+			r.Disconnected[0] == nil && r.Disconnected[1] == nil
+		r.mu.Unlock()
+
+		if empty {
+			rm.RemoveRoom(r.Code)
+		}
+
+		slog.Info("grace period expired", "room", r.Code, "slot", idx+1)
+	})
+
+	return idx
+}
+
+// ReconnectPlayer restores a disconnected player into the room.
+// Returns the player number and true if successful, or 0 and false if not found.
+func (r *Room) ReconnectPlayer(c *Client, name string) (int, bool) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	for i, d := range r.Disconnected {
+		if d != nil && d.Name == name {
+			c.name = d.Name
+			c.playerNumber = d.PlayerNumber
+			c.room = r
+			r.Players[i] = c
+			r.Disconnected[i] = nil
+
+			if r.graceTimers[i] != nil {
+				r.graceTimers[i].Stop()
+				r.graceTimers[i] = nil
+			}
+
+			return d.PlayerNumber, true
+		}
+	}
+
+	return 0, false
+}
+
+// IsEmpty reports whether the room has no players and no disconnected players.
 func (r *Room) IsEmpty() bool {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	return r.Players[0] == nil && r.Players[1] == nil
+	return r.Players[0] == nil && r.Players[1] == nil &&
+		r.Disconnected[0] == nil && r.Disconnected[1] == nil
 }
 
 // Partner returns the other player in the room, or nil.

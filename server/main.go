@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"flag"
+	"io/fs"
 	"log/slog"
 	"net/http"
 	"os"
@@ -32,11 +34,53 @@ func handleWebSocket(rooms *RoomManager) http.HandlerFunc {
 	}
 }
 
+// spaHandler serves static files and falls back to index.html for client-side routing.
+func spaHandler(dir string) http.Handler {
+	fileSystem := http.Dir(dir)
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Try to open the requested file
+		f, err := fileSystem.Open(r.URL.Path)
+		if err != nil {
+			// File not found — serve index.html for SPA routing
+			http.ServeFile(w, r, dir+"/index.html")
+			return
+		}
+
+		defer f.Close()
+
+		// Check if path is a directory (not a file)
+		stat, err := f.Stat()
+		if err != nil || stat.IsDir() {
+			// For directories, check if index.html exists inside
+			index, indexErr := fileSystem.Open(r.URL.Path + "/index.html")
+			if indexErr != nil {
+				if pathErr, ok := indexErr.(*fs.PathError); ok && os.IsNotExist(pathErr.Err) {
+					http.ServeFile(w, r, dir+"/index.html")
+					return
+				}
+			} else {
+				index.Close()
+			}
+		}
+
+		http.FileServer(fileSystem).ServeHTTP(w, r)
+	})
+}
+
 func main() {
+	staticDir := flag.String("static", "", "directory to serve static files from (Angular dist)")
+	flag.Parse()
+
 	rooms := NewRoomManager()
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/ws", handleWebSocket(rooms))
+
+	if *staticDir != "" {
+		slog.Info("serving static files", "dir", *staticDir)
+		mux.Handle("/", spaHandler(*staticDir))
+	}
 
 	server := &http.Server{
 		Addr:    ":8080",

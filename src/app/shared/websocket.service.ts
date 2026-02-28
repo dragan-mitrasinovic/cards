@@ -22,6 +22,10 @@ export class WebSocketService implements OnDestroy {
   private intentionalClose = false;
   private pendingMessages: ClientMessage[] = [];
 
+  /** Stored credentials for reconnection after unexpected disconnect. */
+  private reconnectName: string | null = null;
+  private reconnectRoomCode: string | null = null;
+
   connect(path: string): void {
     this.disconnect();
     this.intentionalClose = false;
@@ -35,11 +39,19 @@ export class WebSocketService implements OnDestroy {
     this.intentionalClose = true;
     this.clearTimers();
     this.pendingMessages = [];
+    this.reconnectName = null;
+    this.reconnectRoomCode = null;
     if (this.socket) {
       this.socket.close();
       this.socket = null;
     }
     this.status.set('disconnected');
+  }
+
+  /** Store credentials so the service can auto-reconnect to the same room. */
+  setReconnectCredentials(name: string, roomCode: string): void {
+    this.reconnectName = name;
+    this.reconnectRoomCode = roomCode;
   }
 
   send(message: ClientMessage): void {
@@ -65,6 +77,12 @@ export class WebSocketService implements OnDestroy {
       this.status.set('connected');
       this.reconnectDelay = INITIAL_RECONNECT_DELAY;
       this.startHeartbeat();
+
+      // If we have stored credentials, send a reconnect message
+      if (this.reconnectName && this.reconnectRoomCode) {
+        this.send({ type: 'reconnect', name: this.reconnectName, roomCode: this.reconnectRoomCode });
+      }
+
       this.flushPending();
     };
 

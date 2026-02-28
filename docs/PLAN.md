@@ -185,17 +185,12 @@ LOBBY (waiting for 2nd player)
 - [x] Game over screen + rematch
 
 ### Phase 4: Polish & UX
-- [ ] Card flip/placement/swap animations
-- [ ] Peek at own placed cards
-- [ ] Responsive layout (mobile support)
-- [ ] Connection status indicator
-- [ ] Reconnection with grace period
-- [ ] Disconnection handling
-
-### Phase 5: Art & Final Polish
-- [ ] Replace CSS placeholder cards with illustrated art
-- [ ] Sound effects (future)
-- [ ] Final UX polish, edge cases, testing
+- [x] Card flip/placement/swap animations
+- [x] Peek at own placed cards
+- [x] Responsive layout (mobile support)
+- [x] Connection status indicator
+- [x] Reconnection with grace period
+- [x] Disconnection handling
 
 ---
 

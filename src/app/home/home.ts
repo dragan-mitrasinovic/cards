@@ -79,6 +79,7 @@ export class HomeComponent implements OnDestroy {
       this.gameState.playerName.set(this.playerName.trim());
       this.gameState.playerNumber.set(created.playerNumber);
       this.gameState.roomCode.set(created.roomCode);
+      this.ws.setReconnectCredentials(this.playerName.trim(), created.roomCode);
       this.router.navigate(['/game', created.roomCode]);
     } else if (msg.type === 'error') {
       this.errorMessage.set((msg as ErrorMessage).message);
@@ -93,6 +94,7 @@ export class HomeComponent implements OnDestroy {
       this.gameState.playerNumber.set(joined.playerNumber);
       this.gameState.partnerName.set(joined.partnerName);
       this.gameState.roomCode.set(code);
+      this.ws.setReconnectCredentials(this.playerName.trim(), code);
       this.router.navigate(['/game', code]);
     } else if (msg.type === 'error') {
       this.errorMessage.set((msg as ErrorMessage).message);

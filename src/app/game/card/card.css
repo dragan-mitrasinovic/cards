@@ -1,6 +1,6 @@
 .card {
-  width: 80px;
-  height: 120px;
+  width: var(--card-width, 80px);
+  height: var(--card-height, 120px);
   border-radius: 8px;
   border: 2px solid #d1d5db;
   display: flex;
@@ -80,4 +80,18 @@
   font-size: 2.5rem;
   color: white;
   opacity: 0.6;
+}
+
+@media (max-width: 767px) {
+  .card-value {
+    font-size: 1.125rem;
+  }
+
+  .card-suit {
+    font-size: 1.25rem;
+  }
+
+  .card-back {
+    font-size: 1.75rem;
+  }
 }

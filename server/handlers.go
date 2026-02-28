@@ -142,6 +142,182 @@ func (c *Client) handleJoinRoom(raw []byte) {
 	}
 }
 
+func (c *Client) handleReconnect(raw []byte) {
+	var msg ReconnectMsg
+	if err := json.Unmarshal(raw, &msg); err != nil {
+		c.SendMsg(newError("invalid reconnect message"))
+		return
+	}
+
+	name := strings.TrimSpace(msg.Name)
+	if name == "" {
+		c.SendMsg(newError("name is required"))
+		return
+	}
+
+	code := strings.ToUpper(strings.TrimSpace(msg.RoomCode))
+	if code == "" {
+		c.SendMsg(newError("room code is required"))
+		return
+	}
+
+	if c.room != nil {
+		c.SendMsg(newError("already in a room"))
+		return
+	}
+
+	room := c.rooms.GetRoom(code)
+	if room == nil {
+		c.SendMsg(newError("room not found"))
+		return
+	}
+
+	playerNum, ok := room.ReconnectPlayer(c, name)
+	if !ok {
+		c.SendMsg(newError("reconnection failed — no matching disconnected player"))
+		return
+	}
+
+	slog.Info("player reconnected", "player", c.name, "room", room.Code)
+
+	// Notify partner
+	if partner := room.Partner(c); partner != nil {
+		partner.SendMsg(PlayerReconnectedMsg{
+			Type:       "player_reconnected",
+			PlayerName: c.name,
+		})
+	}
+
+	// Send full game state to the reconnecting player
+	sendGameState(c, room, playerNum)
+}
+
+// sendGameState sends the current game state to a reconnecting player.
+func sendGameState(c *Client, room *Room, playerNum int) {
+	room.mu.Lock()
+	defer room.mu.Unlock()
+
+	game := room.Game
+	partner := room.Players[0]
+	if partner == c {
+		partner = room.Players[1]
+	}
+
+	partnerName := ""
+	if partner != nil {
+		partnerName = partner.name
+	}
+
+	// Send player_joined to restore room/player info
+	c.SendMsg(PlayerJoinedMsg{
+		Type:         "player_joined",
+		PlayerName:   c.name,
+		PlayerNumber: playerNum,
+		PartnerName:  partnerName,
+	})
+
+	if game == nil {
+		return
+	}
+
+	// Send hand with usage info for reconnection
+	hand := game.Hands[playerNum-1][:]
+	handUsed := game.HandUsed[playerNum-1][:]
+	c.SendMsg(GameStartMsg{
+		Type:        "game_start",
+		Hand:        hand,
+		FirstPlayer: game.FirstPlayer,
+		HandUsed:    handUsed,
+	})
+
+	// Send board state — placed cards
+	for i := 0; i < BoardSize; i++ {
+		if game.Board[i] != nil {
+			c.SendMsg(CardPlacedMsg{
+				Type:      "card_placed",
+				SlotIndex: i,
+				ByPlayer:  game.BoardOwner[i],
+			})
+		}
+	}
+
+	// Send pass usage
+	for i := 0; i < 2; i++ {
+		if game.PassUsed[i] {
+			c.SendMsg(PlayerPassedMsg{
+				Type:     "player_passed",
+				ByPlayer: i + 1,
+			})
+		}
+	}
+
+	// Send swap history
+	for _, swap := range game.SwapHistory {
+		c.SendMsg(SwapResultMsg{
+			Type:     "swap_result",
+			Accepted: true,
+			SlotA:    swap.SlotA,
+			SlotB:    swap.SlotB,
+			ByPlayer: swap.ByPlayer,
+		})
+	}
+
+	// Send phase-specific state
+	switch game.Phase {
+	case PhaseTurnOrderPick:
+		c.SendMsg(TurnOrderPromptMsg{Type: "turn_order_prompt", Hand: hand})
+
+	case PhasePlacement:
+		if game.CurrentTurn == playerNum {
+			c.SendMsg(YourTurnMsg{Type: "your_turn"})
+		}
+
+		if game.SwapPending {
+			c.SendMsg(SwapSuggestedMsg{
+				Type:     "swap_suggested",
+				SlotA:    game.SwapSlots[0],
+				SlotB:    game.SwapSlots[1],
+				ByPlayer: game.SwapSuggester,
+			})
+		}
+
+	case PhaseSwap:
+		c.SendMsg(SwapPromptMsg{Type: "swap_prompt", ByPlayer: game.CurrentTurn})
+
+		if game.SwapPending {
+			c.SendMsg(SwapSuggestedMsg{
+				Type:     "swap_suggested",
+				SlotA:    game.SwapSlots[0],
+				SlotB:    game.SwapSlots[1],
+				ByPlayer: game.SwapSuggester,
+			})
+		}
+
+	case PhaseGameOver:
+		revealOrder := game.RevealOrder()
+		for _, entry := range revealOrder {
+			c.SendMsg(RevealCardMsg{
+				Type:      "reveal_card",
+				SlotIndex: entry.SlotIndex,
+				Card:      entry.Card,
+				Delay:     0, // No delay for reconnect — show instantly
+			})
+		}
+
+		win := game.CheckWin()
+		boardCards := make([]BoardCard, 0, len(revealOrder))
+		for _, entry := range revealOrder {
+			boardCards = append(boardCards, BoardCard{SlotIndex: entry.SlotIndex, Card: entry.Card})
+		}
+
+		c.SendMsg(GameResultMsg{
+			Type:  "game_result",
+			Win:   win,
+			Board: boardCards,
+		})
+	}
+}
+
 func (c *Client) handleTurnOrderPick(raw []byte) {
 	var msg TurnOrderPickMsg
 	if err := json.Unmarshal(raw, &msg); err != nil {

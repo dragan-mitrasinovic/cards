@@ -43,6 +43,19 @@ type PlayerDisconnectedMsg struct {
 	PlayerName string `json:"playerName"`
 }
 
+// PlayerReconnectedMsg is sent to the remaining player when the other reconnects.
+type PlayerReconnectedMsg struct {
+	Type       string `json:"type"`
+	PlayerName string `json:"playerName"`
+}
+
+// ReconnectMsg is sent by a reconnecting client to rejoin a room.
+type ReconnectMsg struct {
+	Type     string `json:"type"`
+	Name     string `json:"name"`
+	RoomCode string `json:"roomCode"`
+}
+
 // ErrorResponseMsg is sent to a client when an error occurs.
 type ErrorResponseMsg struct {
 	Type    string `json:"type"`
@@ -88,6 +101,7 @@ type GameStartMsg struct {
 	Type        string `json:"type"`
 	Hand        []Card `json:"hand"`
 	FirstPlayer int    `json:"firstPlayer"`
+	HandUsed    []bool `json:"handUsed,omitempty"` // only set during reconnection
 }
 
 // --- Placement phase messages ---
@@ -170,9 +184,9 @@ type SwapSuggestedMsg struct {
 type SwapResultMsg struct {
 	Type     string `json:"type"`
 	Accepted bool   `json:"accepted"`
-	SlotA    int    `json:"slotA,omitempty"`
-	SlotB    int    `json:"slotB,omitempty"`
-	ByPlayer int    `json:"byPlayer,omitempty"`
+	SlotA    int    `json:"slotA"`
+	SlotB    int    `json:"slotB"`
+	ByPlayer int    `json:"byPlayer"`
 }
 
 // --- Reveal phase messages (Server → Client) ---

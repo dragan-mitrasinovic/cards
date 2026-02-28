@@ -1,5 +1,5 @@
-<div class="block min-h-screen p-4">
-  <header class="flex justify-between items-center pb-4 border-b border-gray-200 mb-8">
+<div class="block min-h-screen p-4 sm:p-4 px-2">
+  <header class="flex justify-between items-center pb-4 border-b border-gray-200 mb-4 sm:mb-8">
     <h1 class="m-0 text-2xl font-bold">Cards</h1>
     <div class="flex items-center gap-3">
       @if (gameState.roomCode()) {
@@ -64,10 +64,17 @@
     </div>
   } @else {
     <!-- Both players are in the room -->
+    @if (partnerDisconnected()) {
+      <div class="mb-4 px-4 py-3 bg-yellow-50 border border-yellow-200 rounded-lg flex items-center gap-3">
+        <span class="inline-block w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></span>
+        <span class="text-yellow-700 text-sm font-medium">{{ gameState.partnerName() }} disconnected — waiting for reconnection…</span>
+      </div>
+    }
+
     @if (gameState.phase() === 'turn_order_pick') {
       <div class="flex flex-col items-center min-h-[300px] justify-center">
         @if (partnerDisconnected()) {
-          <p class="text-yellow-600 mb-2">{{ gameState.partnerName() }} disconnected</p>
+          <p class="text-yellow-600 mb-2">Waiting for {{ gameState.partnerName() }} to reconnect…</p>
         } @else {
           <app-turn-order-pick />
         }
@@ -81,11 +88,11 @@
     } @else if (gameState.phase() === 'placement') {
       <div class="placement-phase">
         <!-- Player bar -->
-        <div class="flex items-center justify-between px-4 py-2 bg-gray-50 rounded-lg mb-4">
-          <div class="flex items-center gap-4">
-            <span class="font-semibold" [class.text-blue-600]="gameState.isMyTurn()">{{ gameState.playerName() }}</span>
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between px-3 sm:px-4 py-2 bg-gray-50 rounded-lg mb-4 gap-1 sm:gap-0">
+          <div class="flex items-center gap-2 sm:gap-4">
+            <span class="font-semibold text-sm sm:text-base" [class.text-blue-600]="gameState.isMyTurn()">{{ gameState.playerName() }}</span>
             <span class="text-gray-400">&amp;</span>
-            <span class="font-semibold" [class.text-blue-600]="!gameState.isMyTurn()">{{ gameState.partnerName() }}</span>
+            <span class="font-semibold text-sm sm:text-base" [class.text-blue-600]="!gameState.isMyTurn()">{{ gameState.partnerName() }}</span>
           </div>
           <div class="flex items-center gap-4 text-sm text-gray-500">
             @if (gameState.isMyTurn() && !placementSwapMode()) {
@@ -182,11 +189,11 @@
     } @else if (gameState.phase() === 'swap') {
       <div class="swap-phase">
         <!-- Player bar -->
-        <div class="flex items-center justify-between px-4 py-2 bg-gray-50 rounded-lg mb-4">
-          <div class="flex items-center gap-4">
-            <span class="font-semibold">{{ gameState.playerName() }}</span>
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between px-3 sm:px-4 py-2 bg-gray-50 rounded-lg mb-4 gap-1 sm:gap-0">
+          <div class="flex items-center gap-2 sm:gap-4">
+            <span class="font-semibold text-sm sm:text-base">{{ gameState.playerName() }}</span>
             <span class="text-gray-400">&amp;</span>
-            <span class="font-semibold">{{ gameState.partnerName() }}</span>
+            <span class="font-semibold text-sm sm:text-base">{{ gameState.partnerName() }}</span>
           </div>
           <div class="flex items-center gap-4 text-sm text-gray-500">
             <span class="text-purple-600 font-medium">Swap Phase</span>
@@ -255,11 +262,11 @@
     } @else if (gameState.phase() === 'reveal') {
       <div class="reveal-phase">
         <!-- Player bar -->
-        <div class="flex items-center justify-between px-4 py-2 bg-gray-50 rounded-lg mb-4">
-          <div class="flex items-center gap-4">
-            <span class="font-semibold">{{ gameState.playerName() }}</span>
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between px-3 sm:px-4 py-2 bg-gray-50 rounded-lg mb-4 gap-1 sm:gap-0">
+          <div class="flex items-center gap-2 sm:gap-4">
+            <span class="font-semibold text-sm sm:text-base">{{ gameState.playerName() }}</span>
             <span class="text-gray-400">&amp;</span>
-            <span class="font-semibold">{{ gameState.partnerName() }}</span>
+            <span class="font-semibold text-sm sm:text-base">{{ gameState.partnerName() }}</span>
           </div>
           <div class="flex items-center gap-4 text-sm">
             <span class="text-amber-600 font-medium">Reveal Phase</span>

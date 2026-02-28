@@ -5,7 +5,7 @@ import { map, Subscription } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { WebSocketService } from '../shared/websocket.service';
 import { GameStateService } from '../shared/game-state.service';
-import { PlayerJoinedMessage, PlayerDisconnectedMessage, ErrorMessage, TurnOrderPromptMessage, TurnOrderResultMessage, GameStartMessage, CardPlacedMessage, PlayerPassedMessage, PeekResultMessage, SwapPromptMessage, SwapSuggestedMessage, SwapResultMessage, RevealCardMessage, GameResultMessage, PlayAgainWaitingMessage } from '../shared/messages';
+import { PlayerJoinedMessage, PlayerDisconnectedMessage, PlayerReconnectedMessage, ErrorMessage, TurnOrderPromptMessage, TurnOrderResultMessage, GameStartMessage, CardPlacedMessage, PlayerPassedMessage, PeekResultMessage, SwapPromptMessage, SwapSuggestedMessage, SwapResultMessage, RevealCardMessage, GameResultMessage, PlayAgainWaitingMessage } from '../shared/messages';
 import { TurnOrderPickComponent } from './turn-order-pick/turn-order-pick';
 import { BoardComponent } from './board/board';
 import { HandComponent } from './hand/hand';
@@ -58,12 +58,21 @@ export class GameComponent implements OnInit, OnDestroy {
           this.gameState.partnerName.set(joined.partnerName);
           this.needsJoin.set(false);
           this.partnerDisconnected.set(false);
+          // Store credentials for auto-reconnection
+          this.ws.setReconnectCredentials(joined.playerName, this.gameState.roomCode() || this.roomId());
           break;
         }
         case 'player_disconnected': {
           const disc = msg as PlayerDisconnectedMessage;
           if (disc.playerName === this.gameState.partnerName()) {
             this.partnerDisconnected.set(true);
+          }
+          break;
+        }
+        case 'player_reconnected': {
+          const recon = msg as PlayerReconnectedMessage;
+          if (recon.playerName === this.gameState.partnerName()) {
+            this.partnerDisconnected.set(false);
           }
           break;
         }
@@ -95,6 +104,13 @@ export class GameComponent implements OnInit, OnDestroy {
           this.gameState.firstPlayer.set(start.firstPlayer);
           this.gameState.currentTurn.set(start.firstPlayer);
           this.gameState.phase.set('placement');
+          // Reset board and hand state for fresh game or reconnection
+          this.gameState.board.set(this.gameState.emptyBoard());
+          this.gameState.handUsed.set(start.handUsed ?? new Array(7).fill(false));
+          this.gameState.passUsed.set([false, false]);
+          this.gameState.swapAccepted.set([false, false]);
+          this.gameState.swapHistory.set([]);
+          this.gameState.swapPending.set(false);
           break;
         }
         case 'your_turn': {

@@ -25,7 +25,7 @@
     }
   </div>
   @if (swapHistory().length > 0) {
-    <svg class="swap-arrows" viewBox="0 0 1344 50" preserveAspectRatio="none">
+    <svg class="swap-arrows" [attr.viewBox]="svgViewBox" preserveAspectRatio="none">
       @for (swap of swapHistory(); track $index) {
         <path
           [attr.d]="getSwapArrowPath(swap.slotA, swap.slotB)"

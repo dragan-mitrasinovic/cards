@@ -102,7 +102,7 @@ export class GameStateService {
     this.playAgainSent.set(false);
   }
 
-  private emptyBoard(): BoardSlot[] {
+  emptyBoard(): BoardSlot[] {
     return Array.from({ length: 15 }, () => ({ occupied: false, byPlayer: 0 }));
   }
 }

@@ -132,6 +132,8 @@ func (c *Client) handleMessage(raw []byte) {
 		c.handleCreateRoom(raw)
 	case "join_room":
 		c.handleJoinRoom(raw)
+	case "reconnect":
+		c.handleReconnect(raw)
 	case "turn_order_pick":
 		c.handleTurnOrderPick(raw)
 	case "place_card":
@@ -148,6 +150,8 @@ func (c *Client) handleMessage(raw []byte) {
 		c.handleRespondSwap(raw)
 	case "play_again":
 		c.handlePlayAgain()
+	case "echo":
+		// Heartbeat — no action needed
 	default:
 		c.SendMsg(newError("unknown message type: " + env.Type))
 	}
@@ -155,6 +159,7 @@ func (c *Client) handleMessage(raw []byte) {
 
 func (c *Client) cleanup() {
 	close(c.send)
+
 	if c.room != nil {
 		if partner := c.room.Partner(c); partner != nil {
 			partner.SendMsg(PlayerDisconnectedMsg{
@@ -163,11 +168,8 @@ func (c *Client) cleanup() {
 			})
 		}
 
-		c.room.RemovePlayer(c)
-		if c.room.IsEmpty() {
-			c.rooms.RemoveRoom(c.room.Code)
-		}
-
+		// Mark as disconnected with grace period instead of removing immediately
+		c.room.DisconnectPlayer(c, c.rooms)
 		slog.Info("player disconnected", "player", c.name, "room", c.room.Code)
 	}
 }
