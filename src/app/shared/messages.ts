@@ -63,6 +63,11 @@ export interface RespondSwapMessage extends BaseMessage {
   accept: boolean;
 }
 
+export interface SendEmoteMessage extends BaseMessage {
+  type: 'send_emote';
+  emote: string;
+}
+
 export interface PlayAgainMessage extends BaseMessage {
   type: 'play_again';
 }
@@ -73,7 +78,7 @@ export interface ReconnectMessage extends BaseMessage {
   roomCode: string;
 }
 
-export type ClientMessage = EchoMessage | CreateRoomMessage | JoinRoomMessage | TurnOrderPickMessage | PlaceCardMessage | PassMessage | PeekMessage | SuggestSwapMessage | SkipSwapMessage | RespondSwapMessage | PlayAgainMessage | ReconnectMessage;
+export type ClientMessage = EchoMessage | CreateRoomMessage | JoinRoomMessage | TurnOrderPickMessage | PlaceCardMessage | PassMessage | PeekMessage | SuggestSwapMessage | SkipSwapMessage | RespondSwapMessage | SendEmoteMessage | PlayAgainMessage | ReconnectMessage;
 
 // --- Server → Client messages ---
 
@@ -184,6 +189,12 @@ export interface GameResultMessage extends BaseMessage {
   board: { slotIndex: number; card: Card }[];
 }
 
+export interface EmoteReceivedMessage extends BaseMessage {
+  type: 'emote_received';
+  emote: string;
+  fromPlayer: number;
+}
+
 export interface PlayAgainWaitingMessage extends BaseMessage {
   type: 'play_again_waiting';
   playerName: string;
@@ -208,4 +219,5 @@ export type ServerMessage =
   | SwapResultMessage
   | RevealCardMessage
   | GameResultMessage
+  | EmoteReceivedMessage
   | PlayAgainWaitingMessage;

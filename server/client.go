@@ -150,6 +150,8 @@ func (c *Client) handleMessage(raw []byte) {
 		c.handleRespondSwap(raw)
 	case "play_again":
 		c.handlePlayAgain()
+	case "send_emote":
+		c.handleSendEmote(raw)
 	case "echo":
 		// Heartbeat — no action needed
 	default:

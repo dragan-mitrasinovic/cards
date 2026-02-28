@@ -13,7 +13,8 @@ This is a cooperative 2-player browser card game. Players place cards face-down 
   2. Wait for explicit approval before proceeding with the chosen option.
   3. Once approved, update the Tech Stack section of this file (`copilot-instructions.md`) to reflect the new addition.
 - This applies to everything: runtime dependencies, dev dependencies, frameworks, testing libraries, build tools, linters, etc.
-- **After completing any item in `docs/PLAN.md`, update the checkbox from `[ ]` to `[x]` and commit the change.**
+- **After completing any item in `docs/PLAN.md`, update the checkbox from `[ ]` to `[x]`.**
+- **Never run `git commit`, `git push`, or any git write operations. Only use `git` for reading (e.g., `git diff`, `git status`). The user handles all git operations manually.**
 
 ---
 

@@ -197,5 +197,8 @@ LOBBY (waiting for 2nd player)
 ## Open Items / Future Considerations
 - Set up a proper domain and HTTPS for the app
 - Post-game chat (no-comm rule applies during game)
-- Sound effects
 - Illustrated card assets
+
+## Bugs
+- Full link is not shred when user does copy link to room
+- We need confirmation that link was copied.

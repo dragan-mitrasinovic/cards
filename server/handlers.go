@@ -729,6 +729,42 @@ func (c *Client) handlePlayAgain() {
 	}
 }
 
+// allowedEmotes defines the set of valid emote strings.
+var allowedEmotes = map[string]bool{
+	"Wow":         true,
+	"Well Played": true,
+	"Interesting": true,
+}
+
+func (c *Client) handleSendEmote(raw []byte) {
+	var msg SendEmoteMsg
+	if err := json.Unmarshal(raw, &msg); err != nil {
+		c.SendMsg(newError("invalid send_emote message"))
+		return
+	}
+
+	if c.room == nil {
+		c.SendMsg(newError("no active room"))
+		return
+	}
+
+	if !allowedEmotes[msg.Emote] {
+		c.SendMsg(newError("invalid emote"))
+		return
+	}
+
+	partner := c.room.Partner(c)
+	if partner == nil {
+		return
+	}
+
+	partner.SendMsg(EmoteReceivedMsg{
+		Type:       "emote_received",
+		Emote:      msg.Emote,
+		FromPlayer: c.playerNumber,
+	})
+}
+
 // sendYourTurn sends a your_turn message to the player whose turn it is.
 func sendYourTurn(currentTurn int, p1, p2 *Client) {
 	yourTurn := YourTurnMsg{Type: "your_turn"}

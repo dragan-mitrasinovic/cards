@@ -212,6 +212,21 @@ type GameResultMsg struct {
 	Board []BoardCard `json:"board"`
 }
 
+// --- Emote messages ---
+
+// SendEmoteMsg is sent by a player to send a preset emote to their partner.
+type SendEmoteMsg struct {
+	Type  string `json:"type"`
+	Emote string `json:"emote"`
+}
+
+// EmoteReceivedMsg is sent to the partner when an emote is received.
+type EmoteReceivedMsg struct {
+	Type       string `json:"type"`
+	Emote      string `json:"emote"`
+	FromPlayer int    `json:"fromPlayer"`
+}
+
 // --- Play again / rematch messages ---
 
 // PlayAgainMsg is sent by a player to request a rematch.

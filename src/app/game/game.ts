@@ -5,17 +5,19 @@ import { map, Subscription } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { WebSocketService } from '../shared/websocket.service';
 import { GameStateService, type TurnOrderPreference } from '../shared/game-state.service';
-import { PlayerJoinedMessage, PlayerDisconnectedMessage, PlayerReconnectedMessage, ErrorMessage, TurnOrderPromptMessage, TurnOrderResultMessage, GameStartMessage, CardPlacedMessage, PlayerPassedMessage, PeekResultMessage, SwapPromptMessage, SwapSuggestedMessage, SwapResultMessage, RevealCardMessage, GameResultMessage, PlayAgainWaitingMessage } from '../shared/messages';
+import { PlayerJoinedMessage, PlayerDisconnectedMessage, PlayerReconnectedMessage, ErrorMessage, TurnOrderPromptMessage, TurnOrderResultMessage, GameStartMessage, CardPlacedMessage, PlayerPassedMessage, PeekResultMessage, SwapPromptMessage, SwapSuggestedMessage, SwapResultMessage, RevealCardMessage, GameResultMessage, PlayAgainWaitingMessage, EmoteReceivedMessage } from '../shared/messages';
 import { TurnOrderPickComponent } from './turn-order-pick/turn-order-pick';
 import { BoardComponent } from './board/board';
 import { HandComponent } from './hand/hand';
 import { SwapPhaseComponent } from './swap-phase/swap-phase';
 import { RevealPhaseComponent } from './reveal-phase/reveal-phase';
 import { GameOverComponent } from './game-over/game-over';
+import { EmoteBarComponent } from './emote-bar/emote-bar';
+import { EmoteDisplayComponent } from './emote-display/emote-display';
 
 @Component({
   selector: 'app-game',
-  imports: [FormsModule, TurnOrderPickComponent, BoardComponent, HandComponent, SwapPhaseComponent, RevealPhaseComponent, GameOverComponent],
+  imports: [FormsModule, TurnOrderPickComponent, BoardComponent, HandComponent, SwapPhaseComponent, RevealPhaseComponent, GameOverComponent, EmoteBarComponent, EmoteDisplayComponent],
   templateUrl: './game.html',
   styleUrl: './game.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -36,10 +38,12 @@ export class GameComponent implements OnInit, OnDestroy {
   readonly selectedCardIndex = signal(-1);
   readonly selectedSwapSlots = signal<number[]>([]);
   readonly placementSwapMode = signal(false);
+  readonly receivedEmote = signal<string | null>(null);
   joinName = '';
 
   private messagesSub?: Subscription;
   private revealTimeouts: ReturnType<typeof setTimeout>[] = [];
+  private emoteTimeout: ReturnType<typeof setTimeout> | null = null;
 
   readonly shareableLink = computed(() => {
     const code = this.gameState.roomCode() || this.roomId();
@@ -233,6 +237,18 @@ export class GameComponent implements OnInit, OnDestroy {
           }
           break;
         }
+        case 'emote_received': {
+          const emoteMsg = msg as EmoteReceivedMessage;
+          if (this.emoteTimeout) {
+            clearTimeout(this.emoteTimeout);
+          }
+          this.receivedEmote.set(emoteMsg.emote);
+          this.emoteTimeout = setTimeout(() => {
+            this.receivedEmote.set(null);
+            this.emoteTimeout = null;
+          }, 2500);
+          break;
+        }
         case 'error': {
           const err = msg as ErrorMessage;
           if (this.needsJoin()) {
@@ -252,6 +268,9 @@ export class GameComponent implements OnInit, OnDestroy {
     this.messagesSub?.unsubscribe();
     this.revealTimeouts.forEach(t => clearTimeout(t));
     this.revealTimeouts = [];
+    if (this.emoteTimeout) {
+      clearTimeout(this.emoteTimeout);
+    }
   }
 
   joinRoom(): void {
@@ -364,6 +383,10 @@ export class GameComponent implements OnInit, OnDestroy {
   playAgain(): void {
     this.ws.send({ type: 'play_again' });
     this.gameState.playAgainSent.set(true);
+  }
+
+  sendEmote(emote: string): void {
+    this.ws.send({ type: 'send_emote', emote });
   }
 
   leaveGame(): void {
