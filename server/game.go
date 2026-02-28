@@ -438,6 +438,16 @@ func (g *Game) RevealOrder() []RevealEntry {
 	return entries
 }
 
+// FinalizeReveal computes the reveal order, checks the win condition,
+// and transitions to PhaseGameOver.
+func (g *Game) FinalizeReveal() ([]RevealEntry, bool) {
+	order := g.RevealOrder()
+	win := g.CheckWin()
+	g.Phase = PhaseGameOver
+
+	return order, win
+}
+
 // CheckWin evaluates whether the placed cards are in correct relative sorted order.
 // Cards are read left to right, skipping empty slots. Returns true if every card's
 // sort index is greater than the previous card's sort index.
