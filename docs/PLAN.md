@@ -195,6 +195,7 @@ LOBBY (waiting for 2nd player)
 ---
 
 ## Open Items / Future Considerations
+- Set up a proper domain and HTTPS for the app
 - Spectator mode
 - Post-game chat (no-comm rule applies during game)
 - Sound effects
