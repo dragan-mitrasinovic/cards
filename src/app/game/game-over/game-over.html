@@ -1,0 +1,50 @@
+<div class="game-over-phase">
+  @if (gameResult(); as result) {
+    <div class="flex flex-col items-center gap-4 mb-6 p-8 rounded-lg border-2"
+      [class.bg-green-50]="result.win"
+      [class.border-green-300]="result.win"
+      [class.bg-red-50]="!result.win"
+      [class.border-red-300]="!result.win"
+    >
+      <h2 class="text-3xl font-bold"
+        [class.text-green-700]="result.win"
+        [class.text-red-700]="!result.win"
+      >
+        {{ result.win ? '🎉 You Win!' : '😞 You Lose' }}
+      </h2>
+      <p class="text-gray-600">
+        {{ result.win ? 'All cards are in the correct order!' : 'The cards are not in the correct order.' }}
+      </p>
+
+      <div class="flex items-center gap-3 mt-2">
+        @if (!playAgainSent()) {
+          <button
+            (click)="playAgain.emit()"
+            class="px-6 py-2 bg-blue-500 text-white rounded-md font-medium hover:bg-blue-600"
+          >
+            Play Again
+          </button>
+        } @else {
+          <span class="text-sm text-gray-500">Waiting for {{ partnerName() }}…</span>
+        }
+        <button
+          (click)="leaveGame.emit()"
+          class="px-6 py-2 bg-gray-200 text-gray-700 rounded-md font-medium hover:bg-gray-300"
+        >
+          Leave
+        </button>
+      </div>
+      @if (partnerWantsRematch() && !playAgainSent()) {
+        <p class="text-sm text-blue-600 mt-1">{{ partnerName() }} wants to play again!</p>
+      }
+    </div>
+  }
+
+  <app-board
+    [board]="board()"
+    [playerNumber]="playerNumber()"
+    [selectedCardIndex]="-1"
+    [revealMode]="true"
+    [swapHistory]="swapHistory()"
+  />
+</div>

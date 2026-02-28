@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
-import { GameStateService, BoardSlot } from '../../shared/game-state.service';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { BoardSlot } from '../../shared/game-state.service';
 import { CardComponent } from '../card/card';
 
 @Component({
@@ -10,7 +10,9 @@ import { CardComponent } from '../card/card';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BoardComponent {
-  readonly gameState = inject(GameStateService);
+  readonly board = input.required<BoardSlot[]>();
+  readonly playerNumber = input.required<number>();
+  readonly isMyTurn = input(false);
 
   /** Index of the card selected from the player's hand, or -1 if none. */
   readonly selectedCardIndex = input(-1);
@@ -32,10 +34,6 @@ export class BoardComponent {
 
   /** Emitted when a player clicks their own card to peek. */
   readonly slotPeek = output<number>();
-
-  readonly board = computed(() => this.gameState.board());
-  readonly playerNumber = computed(() => this.gameState.playerNumber());
-  readonly isMyTurn = computed(() => this.gameState.isMyTurn());
 
   onSlotClick(index: number): void {
     if (this.swapMode()) {
@@ -76,8 +74,5 @@ export class BoardComponent {
     return 16 + halfCard + slotIndex * step;
   }
 
-  get svgViewBox(): string {
-    const totalWidth = 15 * this.cardWidth + 14 * this.boardGap + 2 * 16;
-    return `0 0 ${totalWidth} 50`;
-  }
+  readonly svgViewBox = `0 0 ${15 * 80 + 14 * 8 + 2 * 16} 50`;
 }

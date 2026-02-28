@@ -58,29 +58,14 @@ export class GameStateService {
     this.playerNumber.set(0);
     this.partnerName.set('');
     this.roomCode.set('');
-    this.phase.set('lobby');
-    this.hand.set([]);
-    this.turnOrderResult.set(null);
-    this.firstPlayer.set(0);
-    this.currentTurn.set(0);
-    this.isMyTurn.set(false);
-    this.board.set(this.emptyBoard());
-    this.passUsed.set([false, false]);
-    this.handUsed.set(new Array(7).fill(false));
-    this.swapPending.set(false);
-    this.swapSlots.set(null);
-    this.swapSuggester.set(0);
-    this.swapAccepted.set([false, false]);
-    this.swapHistory.set([]);
-    this.revealedCount.set(0);
-    this.totalRevealCards.set(0);
-    this.gameResult.set(null);
-    this.partnerWantsRematch.set(false);
-    this.playAgainSent.set(false);
+    this.resetGameState();
   }
 
-  /** resetForRematch resets game state for a new game while keeping room/player info. */
   resetForRematch(): void {
+    this.resetGameState();
+  }
+
+  private resetGameState(): void {
     this.phase.set('lobby');
     this.hand.set([]);
     this.turnOrderResult.set(null);

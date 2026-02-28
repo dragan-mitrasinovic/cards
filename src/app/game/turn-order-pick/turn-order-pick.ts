@@ -1,6 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { WebSocketService } from '../../shared/websocket.service';
-import { GameStateService, TurnOrderPreference } from '../../shared/game-state.service';
+import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
+import { TurnOrderPreference, TurnOrderResult } from '../../shared/game-state.service';
 
 @Component({
   selector: 'app-turn-order-pick',
@@ -9,21 +8,25 @@ import { GameStateService, TurnOrderPreference } from '../../shared/game-state.s
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TurnOrderPickComponent {
-  private ws = inject(WebSocketService);
-  readonly gameState = inject(GameStateService);
+  readonly playerName = input.required<string>();
+  readonly partnerName = input.required<string>();
+  readonly playerNumber = input.required<number>();
+  readonly turnOrderResult = input<TurnOrderResult | null>(null);
+
+  readonly preferenceSelected = output<TurnOrderPreference>();
+  readonly repicked = output<void>();
 
   readonly picked = signal<TurnOrderPreference | null>(null);
-  readonly result = computed(() => this.gameState.turnOrderResult());
 
   pick(preference: TurnOrderPreference): void {
     if (this.picked()) return;
     this.picked.set(preference);
-    this.ws.send({ type: 'turn_order_pick', preference });
+    this.preferenceSelected.emit(preference);
   }
 
   repick(): void {
     this.picked.set(null);
-    this.gameState.turnOrderResult.set(null);
+    this.repicked.emit();
   }
 
   preferenceLabel(pref: string): string {

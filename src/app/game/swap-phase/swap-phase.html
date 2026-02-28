@@ -1,0 +1,71 @@
+<div class="swap-phase">
+  <!-- Player bar -->
+  <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between px-3 sm:px-4 py-2 bg-gray-50 rounded-lg mb-4 gap-1 sm:gap-0">
+    <div class="flex items-center gap-2 sm:gap-4">
+      <span class="font-semibold text-sm sm:text-base">{{ playerName() }}</span>
+      <span class="text-gray-400">&amp;</span>
+      <span class="font-semibold text-sm sm:text-base">{{ partnerName() }}</span>
+    </div>
+    <div class="flex items-center gap-4 text-sm text-gray-500">
+      <span class="text-purple-600 font-medium">Swap Phase</span>
+    </div>
+  </div>
+
+  @if (swapPending()) {
+    <div class="flex flex-col items-center gap-4 mb-4 p-4 bg-purple-50 rounded-lg border border-purple-200">
+      @if (swapSuggester() === playerNumber()) {
+        <p class="text-purple-700 font-medium">You suggested swapping the highlighted cards</p>
+        <p class="text-sm text-gray-500">Waiting for {{ partnerName() }} to respond…</p>
+      } @else {
+        <p class="text-purple-700 font-medium">{{ partnerName() }} wants to swap the highlighted cards</p>
+        <div class="flex gap-3">
+          <button
+            (click)="respondSwap.emit(true)"
+            class="px-4 py-2 bg-green-500 text-white rounded-md font-medium hover:bg-green-600"
+          >
+            Accept
+          </button>
+          <button
+            (click)="respondSwap.emit(false)"
+            class="px-4 py-2 bg-red-500 text-white rounded-md font-medium hover:bg-red-600"
+          >
+            Reject
+          </button>
+        </div>
+      }
+    </div>
+  } @else if (isMyTurn()) {
+    <div class="flex flex-col items-center gap-2 mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+      <p class="text-blue-700 font-medium">Your turn to suggest a swap</p>
+      <p class="text-sm text-gray-500">Click any two cards on the board, or skip</p>
+      @if (selectedSwapSlots().length === 1) {
+        <p class="text-sm text-blue-600">Selected slot {{ selectedSwapSlots()[0] + 1 }} — now click another card</p>
+      }
+      <button
+        (click)="skipSwap.emit()"
+        class="mt-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-md font-medium hover:bg-gray-300"
+      >
+        Skip Swap
+      </button>
+    </div>
+  } @else {
+    <div class="flex flex-col items-center gap-2 mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+      <p class="text-gray-600 font-medium">Waiting for {{ partnerName() }} to suggest a swap…</p>
+      @if (swapAccepted()[playerNumber() - 1]) {
+        <p class="text-sm text-gray-400">Your swap was already used</p>
+      }
+    </div>
+  }
+
+  <app-board
+    [board]="board()"
+    [playerNumber]="playerNumber()"
+    [isMyTurn]="isMyTurn()"
+    [selectedCardIndex]="-1"
+    [swapMode]="boardSwapMode"
+    [selectedSwapSlots]="displaySwapSlots"
+    [swapHistory]="swapHistory()"
+    (slotPlace)="onSlotClick($event)"
+    (slotPeek)="onSlotClick($event)"
+  />
+</div>

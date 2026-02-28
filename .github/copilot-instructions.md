@@ -26,7 +26,7 @@ The tech stack is being defined iteratively. Only the items listed below are con
 - **Backend:** Go with gorilla/websocket (in `/server` directory)
 - **Styling:** Tailwind CSS v4 (utility-first)
 - **SSR/SSG:** Disabled (client-side only)
-- **Testing:** Jasmine + Karma (Angular default)
+- **Testing:** Vitest
 - **Package Manager:** npm (frontend), Go modules (backend)
 
 ---
@@ -79,7 +79,7 @@ Players can suggest swaps **during the placement phase** and during the **swap p
 
 - A swap suggestion consists of choosing **any 2 occupied cards** on the board (the cards remain face-down).
 - The **other player must agree** to the swap for it to happen. If they disagree, the swap does not occur.
-- **During placement**: either player can suggest a swap at any time (not just on their turn). The game pauses until the partner responds. Suggesting a swap does **not** consume a turn.
+- **During placement**: either player can suggest a swap at any time (not just on their turn). The game does **not** pause — both players can continue placing cards while a swap response is pending. Suggesting a swap does **not** consume a turn.
 - Each player can suggest **unlimited** swaps, but at most **1 accepted swap per player** across the entire game. Rejected swaps do not count toward the limit.
 - Accepted swaps are visually marked with arrows linking the two swapped cards for the rest of the game.
 

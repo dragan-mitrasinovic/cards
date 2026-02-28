@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
-import { Card } from '../../shared/messages';
+import { Card, Suit } from '../../shared/messages';
 
 @Component({
   selector: 'app-card',
@@ -17,17 +17,16 @@ export class CardComponent {
 
   readonly clicked = output<void>();
 
-  suitSymbol(suit: string): string {
+  suitSymbol(suit: Suit): string {
     switch (suit) {
       case 'H': return '♥';
       case 'S': return '♠';
       case 'D': return '♦';
       case 'C': return '♣';
-      default: return suit;
     }
   }
 
-  suitColor(suit: string): string {
+  suitColor(suit: Suit): string {
     return suit === 'H' || suit === 'D' ? 'red' : 'black';
   }
 }

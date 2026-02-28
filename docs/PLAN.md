@@ -84,7 +84,7 @@ LOBBY (waiting for 2nd player)
 |---|---|---|
 | `join` | `{ name, roomCode? }` | Lobby |
 | `turn_order_pick` | `{ preference: "first" \| "neutral" \| "no_first" }` | Turn Order |
-| `place_card` | `{ cardId, slotIndex }` | Placement |
+| `place_card` | `{ cardIndex, slotIndex }` | Placement |
 | `pass` | `{}` | Placement |
 | `peek` | `{ slotIndex }` | Placement |
 | `suggest_swap` | `{ slotA, slotB }` | Placement / Swap |

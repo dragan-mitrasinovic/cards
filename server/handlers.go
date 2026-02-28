@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"strings"
+	"unicode/utf8"
 )
 
 // validateName trims and validates a player name.
@@ -14,7 +15,7 @@ func validateName(name string) (string, error) {
 		return "", fmt.Errorf("name is required")
 	}
 
-	if len(name) > maxNameLength {
+	if utf8.RuneCountInString(name) > maxNameLength {
 		return "", fmt.Errorf("name too long")
 	}
 
@@ -96,6 +97,17 @@ func (c *Client) handleJoinRoom(raw []byte) {
 		c.SendMsg(newError("room not found"))
 		return
 	}
+
+	// Check for duplicate name
+	room.mu.Lock()
+	for _, p := range room.Players {
+		if p != nil && p.name == name {
+			room.mu.Unlock()
+			c.SendMsg(newError("name already taken in this room"))
+			return
+		}
+	}
+	room.mu.Unlock()
 
 	playerNum, err := room.AddPlayer(c)
 	if err != nil {

@@ -1,15 +1,15 @@
 <div class="flex flex-col items-center gap-6 py-8">
-  @if (result(); as r) {
+  @if (turnOrderResult(); as r) {
     <!-- Show both picks transparently -->
     <h2 class="text-xl font-semibold">Turn Order Picks</h2>
     <div class="flex gap-8">
       <div class="text-center">
-        <p class="text-sm text-gray-500 mb-1">{{ gameState.playerName() }} (You)</p>
-        <p class="font-semibold text-lg">{{ preferenceLabel(gameState.playerNumber() === 1 ? r.pick1 : r.pick2) }}</p>
+        <p class="text-sm text-gray-500 mb-1">{{ playerName() }} (You)</p>
+        <p class="font-semibold text-lg">{{ preferenceLabel(playerNumber() === 1 ? r.pick1 : r.pick2) }}</p>
       </div>
       <div class="text-center">
-        <p class="text-sm text-gray-500 mb-1">{{ gameState.partnerName() }}</p>
-        <p class="font-semibold text-lg">{{ preferenceLabel(gameState.playerNumber() === 1 ? r.pick2 : r.pick1) }}</p>
+        <p class="text-sm text-gray-500 mb-1">{{ partnerName() }}</p>
+        <p class="font-semibold text-lg">{{ preferenceLabel(playerNumber() === 1 ? r.pick2 : r.pick1) }}</p>
       </div>
     </div>
 
@@ -53,7 +53,7 @@
     } @else {
       <div class="text-center">
         <p class="text-gray-600 mb-2">You chose: <span class="font-semibold">{{ preferenceLabel(picked()!) }}</span></p>
-        <p class="text-sm text-gray-400 animate-pulse">Waiting for {{ gameState.partnerName() }}…</p>
+        <p class="text-sm text-gray-400 animate-pulse">Waiting for {{ partnerName() }}…</p>
       </div>
     }
   }

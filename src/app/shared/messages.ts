@@ -2,9 +2,11 @@ export interface BaseMessage {
   type: string;
 }
 
+export type Suit = 'H' | 'S' | 'D' | 'C';
+
 /** Card represents a single playing card with suit and value. */
 export interface Card {
-  suit: string;
+  suit: Suit;
   value: number;
 }
 

@@ -11,6 +11,7 @@ describe('HomeComponent', () => {
     connect: ReturnType<typeof vi.fn>;
     send: ReturnType<typeof vi.fn>;
     disconnect: ReturnType<typeof vi.fn>;
+    setReconnectCredentials: ReturnType<typeof vi.fn>;
     messages$: Subject<ServerMessage>;
   };
 
@@ -20,6 +21,7 @@ describe('HomeComponent', () => {
       connect: vi.fn(),
       send: vi.fn(),
       disconnect: vi.fn(),
+      setReconnectCredentials: vi.fn(),
       messages$: messagesSubject,
     };
 

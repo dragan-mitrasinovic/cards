@@ -4,15 +4,18 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { map, Subscription } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { WebSocketService } from '../shared/websocket.service';
-import { GameStateService } from '../shared/game-state.service';
+import { GameStateService, type TurnOrderPreference } from '../shared/game-state.service';
 import { PlayerJoinedMessage, PlayerDisconnectedMessage, PlayerReconnectedMessage, ErrorMessage, TurnOrderPromptMessage, TurnOrderResultMessage, GameStartMessage, CardPlacedMessage, PlayerPassedMessage, PeekResultMessage, SwapPromptMessage, SwapSuggestedMessage, SwapResultMessage, RevealCardMessage, GameResultMessage, PlayAgainWaitingMessage } from '../shared/messages';
 import { TurnOrderPickComponent } from './turn-order-pick/turn-order-pick';
 import { BoardComponent } from './board/board';
 import { HandComponent } from './hand/hand';
+import { SwapPhaseComponent } from './swap-phase/swap-phase';
+import { RevealPhaseComponent } from './reveal-phase/reveal-phase';
+import { GameOverComponent } from './game-over/game-over';
 
 @Component({
   selector: 'app-game',
-  imports: [FormsModule, TurnOrderPickComponent, BoardComponent, HandComponent],
+  imports: [FormsModule, TurnOrderPickComponent, BoardComponent, HandComponent, SwapPhaseComponent, RevealPhaseComponent, GameOverComponent],
   templateUrl: './game.html',
   styleUrl: './game.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -260,6 +263,14 @@ export class GameComponent implements OnInit, OnDestroy {
     this.ws.connect('/ws');
     this.ws.send({ type: 'join_room', name, roomCode: code });
     this.gameState.roomCode.set(code);
+  }
+
+  onTurnOrderPick(preference: TurnOrderPreference): void {
+    this.ws.send({ type: 'turn_order_pick', preference });
+  }
+
+  onTurnOrderRepick(): void {
+    this.gameState.turnOrderResult.set(null);
   }
 
   copyLink(): void {

@@ -12,6 +12,7 @@ describe('GameComponent', () => {
     connect: () => void;
     send: () => void;
     disconnect: () => void;
+    setReconnectCredentials: () => void;
     status: ReturnType<typeof signal<string>>;
     messages$: Observable<ServerMessage>;
   };
@@ -23,6 +24,7 @@ describe('GameComponent', () => {
       connect: () => {},
       send: () => {},
       disconnect: () => {},
+      setReconnectCredentials: () => {},
       status: signal<string>('disconnected'),
       messages$: messagesSubject.asObservable(),
     };
