@@ -23,6 +23,13 @@ ok()    { echo -e "${GREEN}✔${NC} $1"; }
 warn()  { echo -e "${YELLOW}⚠${NC} $1"; }
 fail()  { echo -e "${RED}✖${NC} $1"; exit 1; }
 
+# ─── Early sudo prompt ───────────────────────────────────────────────────────
+# Ask for the password up front so later sudo calls (e.g. firewall check) don't
+# interrupt the build output.
+if command -v ufw >/dev/null 2>&1; then
+    sudo -v 2>/dev/null || true
+fi
+
 # ─── Prerequisites ───────────────────────────────────────────────────────────
 info "Checking prerequisites..."
 

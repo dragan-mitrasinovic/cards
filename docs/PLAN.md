@@ -196,9 +196,6 @@ LOBBY (waiting for 2nd player)
 
 ## Open Items / Future Considerations
 - Set up a proper domain and HTTPS for the app
-- Spectator mode
 - Post-game chat (no-comm rule applies during game)
 - Sound effects
 - Illustrated card assets
-- Mobile board layout strategy (scroll vs. 2-row) — decide during implementation
-- Rate limiting / abuse prevention on WebSocket server
