@@ -61,6 +61,11 @@ export class GameStateService {
     this.resetGameState();
   }
 
+  resetForPartnerExit(): void {
+    this.partnerName.set('');
+    this.resetGameState();
+  }
+
   resetForRematch(): void {
     this.resetGameState();
   }

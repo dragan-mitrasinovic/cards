@@ -150,6 +150,8 @@ func (c *Client) handleMessage(raw []byte) {
 		c.handleRespondSwap(raw)
 	case "play_again":
 		c.handlePlayAgain()
+	case "exit_game":
+		c.handleExitGame()
 	case "send_emote":
 		c.handleSendEmote(raw)
 	case "echo":

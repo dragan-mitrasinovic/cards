@@ -227,6 +227,19 @@ type EmoteReceivedMsg struct {
 	FromPlayer int    `json:"fromPlayer"`
 }
 
+// --- Exit game messages ---
+
+// ExitGameMsg is sent by a player to intentionally leave the game.
+type ExitGameMsg struct {
+	Type string `json:"type"`
+}
+
+// PartnerExitedMsg is sent to the remaining player when the other exits.
+type PartnerExitedMsg struct {
+	Type       string `json:"type"`
+	PlayerName string `json:"playerName"`
+}
+
 // --- Play again / rematch messages ---
 
 // PlayAgainMsg is sent by a player to request a rematch.

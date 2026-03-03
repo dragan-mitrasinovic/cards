@@ -72,13 +72,17 @@ export interface PlayAgainMessage extends BaseMessage {
   type: 'play_again';
 }
 
+export interface ExitGameMessage extends BaseMessage {
+  type: 'exit_game';
+}
+
 export interface ReconnectMessage extends BaseMessage {
   type: 'reconnect';
   name: string;
   roomCode: string;
 }
 
-export type ClientMessage = EchoMessage | CreateRoomMessage | JoinRoomMessage | TurnOrderPickMessage | PlaceCardMessage | PassMessage | PeekMessage | SuggestSwapMessage | SkipSwapMessage | RespondSwapMessage | SendEmoteMessage | PlayAgainMessage | ReconnectMessage;
+export type ClientMessage = EchoMessage | CreateRoomMessage | JoinRoomMessage | TurnOrderPickMessage | PlaceCardMessage | PassMessage | PeekMessage | SuggestSwapMessage | SkipSwapMessage | RespondSwapMessage | SendEmoteMessage | PlayAgainMessage | ExitGameMessage | ReconnectMessage;
 
 // --- Server → Client messages ---
 
@@ -200,6 +204,11 @@ export interface PlayAgainWaitingMessage extends BaseMessage {
   playerName: string;
 }
 
+export interface PartnerExitedMessage extends BaseMessage {
+  type: 'partner_exited';
+  playerName: string;
+}
+
 export type ServerMessage =
   | EchoResponseMessage
   | ErrorMessage
@@ -220,4 +229,5 @@ export type ServerMessage =
   | RevealCardMessage
   | GameResultMessage
   | EmoteReceivedMessage
-  | PlayAgainWaitingMessage;
+  | PlayAgainWaitingMessage
+  | PartnerExitedMessage;

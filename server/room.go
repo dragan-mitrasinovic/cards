@@ -74,6 +74,49 @@ func (r *Room) RemovePlayer(c *Client) {
 	}
 }
 
+// ExitPlayer removes a player who intentionally left the game.
+// Unlike DisconnectPlayer, there is no grace period — the player is removed immediately
+// and the game is reset so the remaining player can wait for a new partner.
+func (r *Room) ExitPlayer(c *Client, rm *RoomManager) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	for i, p := range r.Players {
+		if p == c {
+			r.Players[i] = nil
+			r.Disconnected[i] = nil
+
+			if r.graceTimers[i] != nil {
+				r.graceTimers[i].Stop()
+				r.graceTimers[i] = nil
+			}
+
+			break
+		}
+	}
+
+	// Reset game so room can accept a new partner
+	r.Game = nil
+	r.PlayAgainReady = [2]bool{}
+
+	// Clean up any disconnected partner (no point reconnecting to a dead game)
+	for i := range r.Disconnected {
+		if r.Disconnected[i] != nil {
+			r.Disconnected[i] = nil
+
+			if r.graceTimers[i] != nil {
+				r.graceTimers[i].Stop()
+				r.graceTimers[i] = nil
+			}
+		}
+	}
+
+	// If room is completely empty, remove it
+	if r.Players[0] == nil && r.Players[1] == nil {
+		go rm.RemoveRoom(r.Code)
+	}
+}
+
 // DisconnectPlayer marks a player as disconnected and starts a grace timer.
 // Returns the player's slot index, or -1 if not found.
 func (r *Room) DisconnectPlayer(c *Client, rm *RoomManager) int {

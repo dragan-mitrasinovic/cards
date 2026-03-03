@@ -6,7 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { CdkDropListGroup } from '@angular/cdk/drag-drop';
 import { WebSocketService } from '../shared/websocket.service';
 import { GameStateService, type TurnOrderPreference } from '../shared/game-state.service';
-import { PlayerJoinedMessage, PlayerDisconnectedMessage, PlayerReconnectedMessage, ErrorMessage, TurnOrderPromptMessage, TurnOrderResultMessage, GameStartMessage, CardPlacedMessage, PlayerPassedMessage, PeekResultMessage, SwapPromptMessage, SwapSuggestedMessage, SwapResultMessage, RevealCardMessage, GameResultMessage, PlayAgainWaitingMessage, EmoteReceivedMessage } from '../shared/messages';
+import { PlayerJoinedMessage, PlayerDisconnectedMessage, PlayerReconnectedMessage, ErrorMessage, TurnOrderPromptMessage, TurnOrderResultMessage, GameStartMessage, CardPlacedMessage, PlayerPassedMessage, PeekResultMessage, SwapPromptMessage, SwapSuggestedMessage, SwapResultMessage, RevealCardMessage, GameResultMessage, PlayAgainWaitingMessage, EmoteReceivedMessage, PartnerExitedMessage } from '../shared/messages';
 import { TurnOrderPickComponent } from './turn-order-pick/turn-order-pick';
 import { BoardComponent } from './board/board';
 import { HandComponent } from './hand/hand';
@@ -41,6 +41,7 @@ export class GameComponent implements OnInit, OnDestroy {
   readonly selectedSwapSlots = signal<number[]>([]);
   readonly placementSwapMode = signal(false);
   readonly activeEmote = signal<{ text: string; fromSelf: boolean } | null>(null);
+  readonly partnerLeftMessage = signal('');
   readonly partnerPlayerNumber = computed(() => this.gameState.playerNumber() === 1 ? 2 : 1);
   readonly partnerRemainingCards = computed(() =>
     7 - this.gameState.board().filter(s => s.byPlayer === this.partnerPlayerNumber()).length
@@ -74,6 +75,7 @@ export class GameComponent implements OnInit, OnDestroy {
           this.gameState.partnerName.set(joined.partnerName);
           this.needsJoin.set(false);
           this.partnerDisconnected.set(false);
+          this.partnerLeftMessage.set('');
           // Store credentials for auto-reconnection
           this.ws.setReconnectCredentials(joined.playerName, this.gameState.roomCode() || this.roomId());
           break;
@@ -251,6 +253,18 @@ export class GameComponent implements OnInit, OnDestroy {
           this.showEmote(emoteMsg.emote, false);
           break;
         }
+        case 'partner_exited': {
+          const exited = msg as PartnerExitedMessage;
+          this.partnerLeftMessage.set(`${exited.playerName} left the game`);
+          this.gameState.resetForPartnerExit();
+          this.partnerDisconnected.set(false);
+          this.selectedCardIndex.set(-1);
+          this.selectedSwapSlots.set([]);
+          this.placementSwapMode.set(false);
+          this.revealTimeouts.forEach(t => clearTimeout(t));
+          this.revealTimeouts = [];
+          break;
+        }
         case 'error': {
           const err = msg as ErrorMessage;
           if (this.needsJoin()) {
@@ -416,6 +430,15 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   leaveGame(): void {
+    this.ws.disconnect();
+    this.gameState.reset();
+    this.router.navigate(['/']);
+  }
+
+  exitGame(): void {
+    if (this.gameState.roomCode()) {
+      this.ws.send({ type: 'exit_game' });
+    }
     this.ws.disconnect();
     this.gameState.reset();
     this.router.navigate(['/']);

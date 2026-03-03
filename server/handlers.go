@@ -729,6 +729,30 @@ func (c *Client) handlePlayAgain() {
 	}
 }
 
+func (c *Client) handleExitGame() {
+	if c.room == nil {
+		return
+	}
+
+	room := c.room
+
+	// Notify partner that this player intentionally left
+	if partner := room.Partner(c); partner != nil {
+		partner.SendMsg(PartnerExitedMsg{
+			Type:       "partner_exited",
+			PlayerName: c.name,
+		})
+	}
+
+	// Remove from room and reset game
+	room.ExitPlayer(c, c.rooms)
+
+	slog.Info("player exited", "player", c.name, "room", room.Code)
+
+	// Clear room reference so cleanup() won't double-process
+	c.room = nil
+}
+
 // allowedEmotes defines the set of valid emote strings.
 var allowedEmotes = map[string]bool{
 	"Wow":         true,
