@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { CardComponent } from '../card/card';
 
 @Component({
@@ -12,7 +12,7 @@ export class PartnerHandComponent {
   readonly partnerName = input.required<string>();
   readonly remainingCards = input.required<number>();
 
-  get cardSlots(): number[] {
-    return Array.from({ length: this.remainingCards() }, (_, i) => i);
-  }
+  readonly cardSlots = computed(() =>
+    Array.from({ length: this.remainingCards() }, (_, i) => i)
+  );
 }

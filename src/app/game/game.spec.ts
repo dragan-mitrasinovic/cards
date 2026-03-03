@@ -61,9 +61,9 @@ describe('GameComponent', () => {
     const fixture = TestBed.createComponent(GameComponent);
     fixture.detectChanges();
     await fixture.whenStable();
-    const dot = fixture.nativeElement.querySelector('span[title]') as HTMLElement;
+    const dot = fixture.nativeElement.querySelector('.capitalize') as HTMLElement;
     expect(dot).toBeTruthy();
-    expect(dot.title).toBe('disconnected');
+    expect(dot.textContent?.trim()).toBe('disconnected');
   });
 
   it('should show partner name on player_joined', async () => {

@@ -49,7 +49,7 @@ func (c *Client) handleCreateRoom(raw []byte) {
 
 	c.name = name
 	c.room = room
-	playerNum, err := room.AddPlayer(c)
+	playerNum, err := room.AddPlayer(c, name)
 	if err != nil {
 		c.SendMsg(newError("failed to join room"))
 		slog.Error("failed to add player to new room", "error", err)
@@ -98,18 +98,7 @@ func (c *Client) handleJoinRoom(raw []byte) {
 		return
 	}
 
-	// Check for duplicate name
-	room.mu.Lock()
-	for _, p := range room.Players {
-		if p != nil && p.name == name {
-			room.mu.Unlock()
-			c.SendMsg(newError("name already taken in this room"))
-			return
-		}
-	}
-	room.mu.Unlock()
-
-	playerNum, err := room.AddPlayer(c)
+	playerNum, err := room.AddPlayer(c, name)
 	if err != nil {
 		c.SendMsg(newError("room is full"))
 		return
@@ -657,11 +646,12 @@ func (c *Client) handleRespondSwap(raw []byte) {
 
 	slog.Info("swap response", "player", c.name, "accepted", msg.Accept, "room", c.room.Code)
 
-	result := SwapResultMsg{Type: "swap_result", Accepted: msg.Accept}
-	if msg.Accept {
-		result.SlotA = slotA
-		result.SlotB = slotB
-		result.ByPlayer = suggester
+	result := SwapResultMsg{
+		Type:     "swap_result",
+		Accepted: msg.Accept,
+		SlotA:    slotA,
+		SlotB:    slotB,
+		ByPlayer: suggester,
 	}
 
 	broadcast(p1, p2, result)

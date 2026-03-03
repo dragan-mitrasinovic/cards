@@ -9,14 +9,14 @@ import { ChangeDetectionStrategy, Component, output, signal } from '@angular/cor
           @for (emote of emotes; track emote) {
             <button
               (click)="sendEmote(emote)"
-              class="px-3 py-1.5 text-sm bg-white text-gray-700 rounded-lg shadow-md hover:bg-blue-50 hover:text-blue-600 transition-colors whitespace-nowrap border border-gray-200"
+              class="px-3 py-1.5 text-sm bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg shadow-md hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400 transition-colors whitespace-nowrap border border-gray-200 dark:border-gray-600"
             >
               {{ emote }}
             </button>
           }
           <button
             (click)="open.set(false)"
-            class="px-3 py-1.5 text-xs text-gray-400 hover:text-gray-600 transition-colors"
+            class="px-3 py-1.5 text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
           >
             Cancel
           </button>
@@ -25,7 +25,7 @@ import { ChangeDetectionStrategy, Component, output, signal } from '@angular/cor
 
       <button
         (click)="open.set(!open())"
-        class="w-12 h-12 flex items-center justify-center rounded-full bg-white/80 shadow-md hover:bg-white transition-colors text-xl border border-gray-200"
+        class="w-12 h-12 flex items-center justify-center rounded-full bg-white/80 dark:bg-gray-800/80 shadow-md hover:bg-white dark:hover:bg-gray-700 transition-colors text-xl border border-gray-200 dark:border-gray-600"
         title="Send emote"
       >
         💬

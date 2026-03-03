@@ -8,12 +8,12 @@ import {
   RoomCreatedMessage,
   PlayerJoinedMessage,
   ErrorMessage,
-  ServerMessage,
 } from '../shared/messages';
+import { ThemeToggleComponent } from '../shared/theme-toggle/theme-toggle';
 
 @Component({
   selector: 'app-home',
-  imports: [FormsModule],
+  imports: [FormsModule, ThemeToggleComponent],
   templateUrl: './home.html',
   styleUrl: './home.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -72,7 +72,7 @@ export class HomeComponent implements OnDestroy {
     this.sub?.unsubscribe();
   }
 
-  private handleCreateResponse(msg: ServerMessage): void {
+  private handleCreateResponse(msg: RoomCreatedMessage | ErrorMessage): void {
     this.loading.set(false);
     if (msg.type === 'room_created') {
       const created = msg as RoomCreatedMessage;
@@ -86,7 +86,7 @@ export class HomeComponent implements OnDestroy {
     }
   }
 
-  private handleJoinResponse(msg: ServerMessage, code: string): void {
+  private handleJoinResponse(msg: PlayerJoinedMessage | ErrorMessage, code: string): void {
     this.loading.set(false);
     if (msg.type === 'player_joined') {
       const joined = msg as PlayerJoinedMessage;

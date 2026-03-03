@@ -4,7 +4,6 @@ import { TurnOrderPreference, TurnOrderResult } from '../../shared/game-state.se
 @Component({
   selector: 'app-turn-order-pick',
   templateUrl: './turn-order-pick.html',
-  styleUrl: './turn-order-pick.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TurnOrderPickComponent {

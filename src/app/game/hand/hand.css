@@ -19,8 +19,7 @@
 }
 
 .hand-card-wrapper.hand-card-used {
-  visibility: hidden;
-  pointer-events: none;
+  display: none;
 }
 
 .hand-card-wrapper:active {
@@ -45,6 +44,11 @@
   background: #eff6ff;
   opacity: 0.5;
   flex-shrink: 0;
+}
+
+:host-context(.dark) .drag-placeholder {
+  border-color: #3b82f6;
+  background: rgba(30, 64, 175, 0.2);
 }
 
 .cdk-drag-animating {

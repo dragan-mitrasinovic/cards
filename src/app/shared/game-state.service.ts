@@ -32,6 +32,7 @@ export class GameStateService {
   readonly currentTurn = signal(0);
   readonly isMyTurn = signal(false);
   readonly board = signal<BoardSlot[]>(this.emptyBoard());
+  /** Indexed by playerNumber-1: index 0 = player 1, index 1 = player 2. */
   readonly passUsed = signal<[boolean, boolean]>([false, false]);
   readonly handUsed = signal<boolean[]>(new Array(7).fill(false));
 
@@ -39,6 +40,7 @@ export class GameStateService {
   readonly swapPending = signal(false);
   readonly swapSlots = signal<[number, number] | null>(null);
   readonly swapSuggester = signal(0);
+  /** Indexed by playerNumber-1: index 0 = player 1, index 1 = player 2. */
   readonly swapAccepted = signal<[boolean, boolean]>([false, false]);
   readonly swapHistory = signal<{slotA: number, slotB: number, byPlayer: number}[]>([]);
 
@@ -92,7 +94,11 @@ export class GameStateService {
     this.playAgainSent.set(false);
   }
 
-  emptyBoard(): BoardSlot[] {
+  clearBoard(): void {
+    this.board.set(this.emptyBoard());
+  }
+
+  private emptyBoard(): BoardSlot[] {
     return Array.from({ length: 15 }, () => ({ occupied: false, byPlayer: 0 }));
   }
 }

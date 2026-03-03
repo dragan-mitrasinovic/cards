@@ -47,8 +47,7 @@ func (c *Client) SendMsg(msg any) {
 	select {
 	case c.send <- data:
 	default:
-		slog.Error("send buffer full, disconnecting client", "player", c.name)
-		c.conn.Close()
+		slog.Warn("send buffer full, dropping message", "player", c.name)
 	}
 }
 

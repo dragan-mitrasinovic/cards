@@ -86,7 +86,7 @@ func TestRoomAddPlayer(t *testing.T) {
 	c2 := &Client{name: "Bob"}
 	c3 := &Client{name: "Charlie"}
 
-	num, err := room.AddPlayer(c1)
+	num, err := room.AddPlayer(c1, "Alice")
 	if err != nil {
 		t.Fatalf("unexpected error adding player 1: %v", err)
 	}
@@ -94,7 +94,7 @@ func TestRoomAddPlayer(t *testing.T) {
 		t.Errorf("expected player number 1, got %d", num)
 	}
 
-	num, err = room.AddPlayer(c2)
+	num, err = room.AddPlayer(c2, "Bob")
 	if err != nil {
 		t.Fatalf("unexpected error adding player 2: %v", err)
 	}
@@ -102,7 +102,7 @@ func TestRoomAddPlayer(t *testing.T) {
 		t.Errorf("expected player number 2, got %d", num)
 	}
 
-	_, err = room.AddPlayer(c3)
+	_, err = room.AddPlayer(c3, "Charlie")
 	if err == nil {
 		t.Error("expected error when adding third player to full room")
 	}
@@ -113,8 +113,8 @@ func TestRoomRemovePlayer(t *testing.T) {
 	c1 := &Client{name: "Alice"}
 	c2 := &Client{name: "Bob"}
 
-	room.AddPlayer(c1)
-	room.AddPlayer(c2)
+	room.AddPlayer(c1, "Alice")
+	room.AddPlayer(c2, "Bob")
 
 	room.RemovePlayer(c1)
 	if room.IsEmpty() {
@@ -132,14 +132,14 @@ func TestRoomPartner(t *testing.T) {
 	c1 := &Client{name: "Alice"}
 	c2 := &Client{name: "Bob"}
 
-	room.AddPlayer(c1)
+	room.AddPlayer(c1, "Alice")
 
 	opp := room.Partner(c1)
 	if opp != nil {
 		t.Error("expected no partner when only one player")
 	}
 
-	room.AddPlayer(c2)
+	room.AddPlayer(c2, "Bob")
 
 	opp = room.Partner(c1)
 	if opp != c2 {

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 
 @Component({
   selector: 'app-emote-display',
@@ -35,6 +35,10 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
       font-size: 1rem;
       font-weight: 600;
       white-space: nowrap;
+    }
+
+    :host-context(.dark) .emote-toast {
+      background: rgba(255, 255, 255, 0.15);
     }
 
     .emote-top {

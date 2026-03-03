@@ -38,9 +38,17 @@ type Room struct {
 }
 
 // AddPlayer adds a client to the room. Returns the assigned player number (1 or 2).
-func (r *Room) AddPlayer(c *Client) (int, error) {
+// Rejects duplicate names atomically within the same lock.
+func (r *Room) AddPlayer(c *Client, name string) (int, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
+
+	// Check for duplicate name
+	for _, p := range r.Players {
+		if p != nil && p.name == name {
+			return 0, fmt.Errorf("name already taken in this room")
+		}
+	}
 
 	if r.Players[0] == nil {
 		r.Players[0] = c

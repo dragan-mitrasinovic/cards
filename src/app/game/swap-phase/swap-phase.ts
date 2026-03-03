@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
 import { BoardSlot } from '../../shared/game-state.service';
 import { BoardComponent } from '../board/board';
 
@@ -26,13 +26,13 @@ export class SwapPhaseComponent {
 
   readonly selectedSwapSlots = signal<number[]>([]);
 
-  get displaySwapSlots(): number[] {
-    return this.swapPending() ? (this.swapSlots() ?? []) : this.selectedSwapSlots();
-  }
+  readonly displaySwapSlots = computed(() =>
+    this.swapPending() ? (this.swapSlots() ?? []) : this.selectedSwapSlots()
+  );
 
-  get boardSwapMode(): boolean {
-    return this.isMyTurn() && !this.swapPending() && !this.swapAccepted()[this.playerNumber() - 1];
-  }
+  readonly boardSwapMode = computed(() =>
+    this.isMyTurn() && !this.swapPending() && !this.swapAccepted()[this.playerNumber() - 1]
+  );
 
   onSlotClick(slotIndex: number): void {
     const current = this.selectedSwapSlots();

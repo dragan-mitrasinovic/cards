@@ -16,9 +16,17 @@
   perspective: 600px;
 }
 
+:host-context(.dark) .card {
+  border-color: #4b5563;
+}
+
 .card:hover:not(:disabled) {
   transform: translateY(-4px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+:host-context(.dark) .card:hover:not(:disabled) {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 .card:disabled {
@@ -30,6 +38,10 @@
   background: white;
 }
 
+:host-context(.dark) .card.face-up {
+  background: #1f2937;
+}
+
 .card.revealed {
   animation: cardFlip 0.5s ease-out;
 }
@@ -37,6 +49,11 @@
 .card.face-down {
   background: linear-gradient(135deg, #3b82f6, #1d4ed8);
   border-color: #1e40af;
+}
+
+:host-context(.dark) .card.face-down {
+  background: linear-gradient(135deg, #2563eb, #1e3a8a);
+  border-color: #1e3a8a;
 }
 
 @keyframes cardFlip {
@@ -58,6 +75,11 @@
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
   transform: translateY(-8px);
+}
+
+:host-context(.dark) .card.selected {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.3);
 }
 
 .own-dot {
@@ -87,6 +109,22 @@
   font-size: 3.25rem;
   color: white;
   opacity: 0.6;
+}
+
+.suit-red {
+  color: #dc2626;
+}
+
+.suit-black {
+  color: #1f2937;
+}
+
+:host-context(.dark) .suit-red {
+  color: #f87171;
+}
+
+:host-context(.dark) .suit-black {
+  color: #e5e7eb;
 }
 
 @media (max-width: 767px) {

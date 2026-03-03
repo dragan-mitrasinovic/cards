@@ -6,7 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { CdkDropListGroup } from '@angular/cdk/drag-drop';
 import { WebSocketService } from '../shared/websocket.service';
 import { GameStateService, type TurnOrderPreference } from '../shared/game-state.service';
-import { PlayerJoinedMessage, PlayerDisconnectedMessage, PlayerReconnectedMessage, ErrorMessage, TurnOrderPromptMessage, TurnOrderResultMessage, GameStartMessage, CardPlacedMessage, PlayerPassedMessage, PeekResultMessage, SwapPromptMessage, SwapSuggestedMessage, SwapResultMessage, RevealCardMessage, GameResultMessage, PlayAgainWaitingMessage, EmoteReceivedMessage, PartnerExitedMessage } from '../shared/messages';
+import { ServerMessage } from '../shared/messages';
 import { TurnOrderPickComponent } from './turn-order-pick/turn-order-pick';
 import { BoardComponent } from './board/board';
 import { HandComponent } from './hand/hand';
@@ -17,9 +17,11 @@ import { EmoteBarComponent } from './emote-bar/emote-bar';
 import { EmoteDisplayComponent } from './emote-display/emote-display';
 import { PartnerHandComponent } from './partner-hand/partner-hand';
 
+import { ThemeToggleComponent } from '../shared/theme-toggle/theme-toggle';
+
 @Component({
   selector: 'app-game',
-  imports: [FormsModule, CdkDropListGroup, TurnOrderPickComponent, BoardComponent, HandComponent, SwapPhaseComponent, RevealPhaseComponent, GameOverComponent, EmoteBarComponent, EmoteDisplayComponent, PartnerHandComponent],
+  imports: [FormsModule, CdkDropListGroup, TurnOrderPickComponent, BoardComponent, HandComponent, SwapPhaseComponent, RevealPhaseComponent, GameOverComponent, EmoteBarComponent, EmoteDisplayComponent, PartnerHandComponent, ThemeToggleComponent],
   templateUrl: './game.html',
   styleUrl: './game.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -30,8 +32,8 @@ export class GameComponent implements OnInit, OnDestroy {
   private params = toSignal(this.route.paramMap.pipe(map((p) => p.get('id'))));
   readonly roomId = computed(() => this.params() ?? '');
 
-  readonly ws = inject(WebSocketService);
-  readonly gameState = inject(GameStateService);
+  protected readonly ws = inject(WebSocketService);
+  protected readonly gameState = inject(GameStateService);
 
   /** True when the user arrived via shareable link and needs to enter a name. */
   readonly needsJoin = signal(false);
@@ -53,82 +55,85 @@ export class GameComponent implements OnInit, OnDestroy {
 
   private messagesSub?: Subscription;
   private revealTimeouts: ReturnType<typeof setTimeout>[] = [];
+  private peekTimeouts = new Map<number, ReturnType<typeof setTimeout>>();
   private emoteTimeout: ReturnType<typeof setTimeout> | null = null;
+  private maxRevealDelay = 0;
 
   readonly shareableLink = computed(() => {
     const code = this.gameState.roomCode() || this.roomId();
     return code ? `${location.origin}/game/${code}` : '';
   });
 
+  readonly showHand = computed(() => {
+    const phase = this.gameState.phase();
+    return phase === 'turn_order_pick' || phase === 'placement' || phase === 'swap' || phase === 'reveal';
+  });
+
   ngOnInit(): void {
     // If arriving via shareable link without an active room, prompt to join
-    if (this.ws.status() === 'disconnected' || !this.gameState.roomCode()) {
+    const currentRoom = this.gameState.roomCode();
+    if (this.ws.status() === 'disconnected' || !currentRoom || currentRoom !== this.roomId()) {
       this.needsJoin.set(true);
     }
 
-    this.messagesSub = this.ws.messages$.subscribe((msg) => {
+    this.messagesSub = this.ws.messages$.subscribe((msg: ServerMessage) => {
       switch (msg.type) {
         case 'player_joined': {
-          const joined = msg as PlayerJoinedMessage;
-          this.gameState.playerName.set(joined.playerName);
-          this.gameState.playerNumber.set(joined.playerNumber);
-          this.gameState.partnerName.set(joined.partnerName);
+          this.gameState.playerName.set(msg.playerName);
+          this.gameState.playerNumber.set(msg.playerNumber);
+          this.gameState.partnerName.set(msg.partnerName);
           this.needsJoin.set(false);
           this.partnerDisconnected.set(false);
           this.partnerLeftMessage.set('');
           // Store credentials for auto-reconnection
-          this.ws.setReconnectCredentials(joined.playerName, this.gameState.roomCode() || this.roomId());
+          this.ws.setReconnectCredentials(msg.playerName, this.gameState.roomCode() || this.roomId());
           break;
         }
         case 'player_disconnected': {
-          const disc = msg as PlayerDisconnectedMessage;
-          if (disc.playerName === this.gameState.partnerName()) {
+          if (msg.playerName === this.gameState.partnerName()) {
             this.partnerDisconnected.set(true);
           }
           break;
         }
         case 'player_reconnected': {
-          const recon = msg as PlayerReconnectedMessage;
-          if (recon.playerName === this.gameState.partnerName()) {
+          if (msg.playerName === this.gameState.partnerName()) {
             this.partnerDisconnected.set(false);
           }
           break;
         }
         case 'turn_order_prompt': {
-          const prompt = msg as TurnOrderPromptMessage;
           // If coming from game_over, this is a rematch
           if (this.gameState.phase() === 'game_over') {
             this.revealTimeouts.forEach(t => clearTimeout(t));
             this.revealTimeouts = [];
             this.gameState.resetForRematch();
           }
-          this.gameState.hand.set(prompt.hand);
+          this.gameState.hand.set(msg.hand);
           this.gameState.phase.set('turn_order_pick');
           break;
         }
         case 'turn_order_result': {
-          const result = msg as TurnOrderResultMessage;
           this.gameState.turnOrderResult.set({
-            pick1: result.pick1,
-            pick2: result.pick2,
-            conflict: result.conflict,
-            firstPlayer: result.firstPlayer,
+            pick1: msg.pick1,
+            pick2: msg.pick2,
+            conflict: msg.conflict,
+            firstPlayer: msg.firstPlayer,
           });
           break;
         }
         case 'game_start': {
-          const start = msg as GameStartMessage;
-          this.gameState.hand.set(start.hand);
-          this.gameState.firstPlayer.set(start.firstPlayer);
-          this.gameState.currentTurn.set(start.firstPlayer);
+          this.gameState.hand.set(msg.hand);
+          this.gameState.firstPlayer.set(msg.firstPlayer);
+          this.gameState.currentTurn.set(msg.firstPlayer);
           this.gameState.phase.set('placement');
           // Reset board and hand state for fresh game or reconnection
-          this.gameState.board.set(this.gameState.emptyBoard());
-          this.gameState.handUsed.set(start.handUsed ?? new Array(7).fill(false));
+          this.gameState.clearBoard();
+          this.gameState.handUsed.set(msg.handUsed ?? new Array(7).fill(false));
           this.gameState.passUsed.set([false, false]);
           this.gameState.swapAccepted.set([false, false]);
           this.gameState.swapHistory.set([]);
           this.gameState.swapPending.set(false);
+          this.maxRevealDelay = 0;
           break;
         }
         case 'your_turn': {
@@ -136,39 +141,42 @@ export class GameComponent implements OnInit, OnDestroy {
           break;
         }
         case 'card_placed': {
-          const placed = msg as CardPlacedMessage;
           const board = [...this.gameState.board()];
-          board[placed.slotIndex] = { occupied: true, byPlayer: placed.byPlayer };
+          board[msg.slotIndex] = { occupied: true, byPlayer: msg.byPlayer };
           this.gameState.board.set(board);
-          this.gameState.isMyTurn.set(false);
+          this.gameState.isMyTurn.set(msg.byPlayer !== this.gameState.playerNumber());
           break;
         }
         case 'player_passed': {
-          const passed = msg as PlayerPassedMessage;
           const passUsed: [boolean, boolean] = [...this.gameState.passUsed()];
-          passUsed[passed.byPlayer - 1] = true;
+          passUsed[msg.byPlayer - 1] = true;
           this.gameState.passUsed.set(passUsed);
-          this.gameState.isMyTurn.set(false);
+          this.gameState.isMyTurn.set(msg.byPlayer !== this.gameState.playerNumber());
           break;
         }
         case 'peek_result': {
-          const peek = msg as PeekResultMessage;
           const peekBoard = [...this.gameState.board()];
-          peekBoard[peek.slotIndex] = { ...peekBoard[peek.slotIndex], card: peek.card };
+          peekBoard[msg.slotIndex] = { ...peekBoard[msg.slotIndex], card: msg.card };
           this.gameState.board.set(peekBoard);
+
+          // Cancel any existing peek timeout for this slot
+          const existingTimeout = this.peekTimeouts.get(msg.slotIndex);
+          if (existingTimeout) clearTimeout(existingTimeout);
+
           // Auto-hide after 2 seconds
-          setTimeout(() => {
+          const peekTimeout = setTimeout(() => {
             const b = [...this.gameState.board()];
-            b[peek.slotIndex] = { ...b[peek.slotIndex], card: undefined };
+            b[msg.slotIndex] = { ...b[msg.slotIndex], card: undefined };
             this.gameState.board.set(b);
+            this.peekTimeouts.delete(msg.slotIndex);
           }, 2000);
+          this.peekTimeouts.set(msg.slotIndex, peekTimeout);
           break;
         }
         case 'swap_prompt': {
-          const swap = msg as SwapPromptMessage;
           this.gameState.phase.set('swap');
-          this.gameState.currentTurn.set(swap.byPlayer);
-          this.gameState.isMyTurn.set(swap.byPlayer === this.gameState.playerNumber());
+          this.gameState.currentTurn.set(msg.byPlayer);
+          this.gameState.isMyTurn.set(msg.byPlayer === this.gameState.playerNumber());
           this.gameState.swapPending.set(false);
           this.gameState.swapSlots.set(null);
           this.gameState.swapSuggester.set(0);
@@ -176,30 +184,28 @@ export class GameComponent implements OnInit, OnDestroy {
           break;
         }
         case 'swap_suggested': {
-          const suggested = msg as SwapSuggestedMessage;
           this.gameState.swapPending.set(true);
-          this.gameState.swapSlots.set([suggested.slotA, suggested.slotB]);
-          this.gameState.swapSuggester.set(suggested.byPlayer);
+          this.gameState.swapSlots.set([msg.slotA, msg.slotB]);
+          this.gameState.swapSuggester.set(msg.byPlayer);
           this.placementSwapMode.set(false);
           this.selectedSwapSlots.set([]);
           break;
         }
         case 'swap_result': {
-          const swapResult = msg as SwapResultMessage;
-          if (swapResult.accepted && swapResult.slotA !== undefined && swapResult.slotB !== undefined) {
+          if (msg.accepted && msg.slotA !== undefined && msg.slotB !== undefined) {
             const board = [...this.gameState.board()];
-            const temp = board[swapResult.slotA];
-            board[swapResult.slotA] = board[swapResult.slotB];
-            board[swapResult.slotB] = temp;
+            const temp = board[msg.slotA];
+            board[msg.slotA] = board[msg.slotB];
+            board[msg.slotB] = temp;
             this.gameState.board.set(board);
 
-            if (swapResult.byPlayer !== undefined) {
+            if (msg.byPlayer !== undefined) {
               const accepted: [boolean, boolean] = [...this.gameState.swapAccepted()];
-              accepted[swapResult.byPlayer - 1] = true;
+              accepted[msg.byPlayer - 1] = true;
               this.gameState.swapAccepted.set(accepted);
 
               const history = [...this.gameState.swapHistory()];
-              history.push({ slotA: swapResult.slotA, slotB: swapResult.slotB, byPlayer: swapResult.byPlayer });
+              history.push({ slotA: msg.slotA, slotB: msg.slotB, byPlayer: msg.byPlayer });
               this.gameState.swapHistory.set(history);
             }
           }
@@ -211,51 +217,48 @@ export class GameComponent implements OnInit, OnDestroy {
           break;
         }
         case 'reveal_card': {
-          const reveal = msg as RevealCardMessage;
           if (this.gameState.phase() !== 'reveal') {
             this.gameState.phase.set('reveal');
             this.gameState.revealedCount.set(0);
             this.gameState.totalRevealCards.set(0);
+            this.maxRevealDelay = 0;
           }
           this.gameState.totalRevealCards.update(n => n + 1);
+          this.maxRevealDelay = Math.max(this.maxRevealDelay, msg.delay);
           const timeout = setTimeout(() => {
             const board = [...this.gameState.board()];
-            board[reveal.slotIndex] = {
-              ...board[reveal.slotIndex],
-              card: reveal.card,
+            board[msg.slotIndex] = {
+              ...board[msg.slotIndex],
+              card: msg.card,
             };
             this.gameState.board.set(board);
             this.gameState.revealedCount.update(n => n + 1);
-          }, reveal.delay);
+          }, msg.delay);
           this.revealTimeouts.push(timeout);
           break;
         }
         case 'game_result': {
-          const gameResult = msg as GameResultMessage;
-          this.gameState.gameResult.set({ win: gameResult.win });
+          this.gameState.gameResult.set({ win: msg.win });
           // Transition to game_over after all reveals complete
-          const totalDelay = this.gameState.totalRevealCards() * 800;
-          const timeout = setTimeout(() => {
+          const totalDelay = this.maxRevealDelay + 800;
+          const resultTimeout = setTimeout(() => {
             this.gameState.phase.set('game_over');
           }, totalDelay);
-          this.revealTimeouts.push(timeout);
+          this.revealTimeouts.push(resultTimeout);
           break;
         }
         case 'play_again_waiting': {
-          const waiting = msg as PlayAgainWaitingMessage;
-          if (waiting.playerName !== this.gameState.playerName()) {
+          if (msg.playerName !== this.gameState.playerName()) {
             this.gameState.partnerWantsRematch.set(true);
           }
           break;
         }
         case 'emote_received': {
-          const emoteMsg = msg as EmoteReceivedMessage;
-          this.showEmote(emoteMsg.emote, false);
+          this.showEmote(msg.emote, false);
           break;
         }
         case 'partner_exited': {
-          const exited = msg as PartnerExitedMessage;
-          this.partnerLeftMessage.set(`${exited.playerName} left the game`);
+          this.partnerLeftMessage.set(`${msg.playerName} left the game`);
           this.gameState.resetForPartnerExit();
           this.partnerDisconnected.set(false);
           this.selectedCardIndex.set(-1);
@@ -266,9 +269,8 @@ export class GameComponent implements OnInit, OnDestroy {
           break;
         }
         case 'error': {
-          const err = msg as ErrorMessage;
           if (this.needsJoin()) {
-            this.joinError.set(err.message);
+            this.joinError.set(msg.message);
           }
           if (this.placementSwapMode()) {
             this.placementSwapMode.set(false);
@@ -284,6 +286,8 @@ export class GameComponent implements OnInit, OnDestroy {
     this.messagesSub?.unsubscribe();
     this.revealTimeouts.forEach(t => clearTimeout(t));
     this.revealTimeouts = [];
+    this.peekTimeouts.forEach(t => clearTimeout(t));
+    this.peekTimeouts.clear();
     if (this.emoteTimeout) {
       clearTimeout(this.emoteTimeout);
     }

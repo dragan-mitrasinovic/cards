@@ -29,8 +29,16 @@
   scroll-snap-align: center;
 }
 
+:host-context(.dark) .slot {
+  border-color: #4b5563;
+}
+
 .slot-empty {
   background: #f9fafb;
+}
+
+:host-context(.dark) .slot-empty {
+  background: #111827;
 }
 
 .slot-placeable {
@@ -42,6 +50,16 @@
 .slot-placeable:hover {
   background: #dbeafe;
   border-color: #2563eb;
+}
+
+:host-context(.dark) .slot-placeable {
+  border-color: #60a5fa;
+  background: rgba(30, 64, 175, 0.2);
+}
+
+:host-context(.dark) .slot-placeable:hover {
+  background: rgba(30, 64, 175, 0.35);
+  border-color: #93c5fd;
 }
 
 .slot-peekable {
@@ -58,10 +76,25 @@
   border-color: #9333ea;
 }
 
+:host-context(.dark) .slot-swappable {
+  border-color: #c084fc;
+}
+
+:host-context(.dark) .slot-swappable:hover {
+  background: rgba(88, 28, 135, 0.25);
+  border-color: #d8b4fe;
+}
+
 .slot-swap-selected {
   border-color: #9333ea;
   background: #f3e8ff;
   box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.3);
+}
+
+:host-context(.dark) .slot-swap-selected {
+  border-color: #c084fc;
+  background: rgba(88, 28, 135, 0.35);
+  box-shadow: 0 0 0 3px rgba(192, 132, 252, 0.3);
 }
 
 .slot-number {
@@ -70,10 +103,19 @@
   font-weight: 500;
 }
 
+:host-context(.dark) .slot-number {
+  color: #6b7280;
+}
+
 .slot-drop-target.cdk-drop-list-dragging:not(.cdk-drop-list-disabled) {
   border-color: #3b82f6;
   background: #dbeafe;
   animation: dropPulse 1s ease-in-out infinite;
+}
+
+:host-context(.dark) .slot-drop-target.cdk-drop-list-dragging:not(.cdk-drop-list-disabled) {
+  border-color: #60a5fa;
+  background: rgba(30, 64, 175, 0.3);
 }
 
 @keyframes dropPulse {

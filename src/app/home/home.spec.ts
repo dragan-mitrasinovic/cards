@@ -50,7 +50,8 @@ describe('HomeComponent', () => {
     const fixture = TestBed.createComponent(HomeComponent);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
-    const createBtn = compiled.querySelector('button') as HTMLButtonElement;
+    const buttons = compiled.querySelectorAll('button');
+    const createBtn = Array.from(buttons).find(b => b.textContent?.includes('Create Game')) as HTMLButtonElement;
     expect(createBtn.disabled).toBe(true);
   });
 

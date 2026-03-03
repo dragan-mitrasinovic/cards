@@ -29,6 +29,8 @@ export class HandComponent {
     this.cardSelected.emit(index);
   }
 
+  // CAUTION: Accesses private CDK _dragRef API to center the drag preview on cursor.
+  // This may break on Angular CDK upgrades — no public API exists for this.
   onDragStarted(event: CdkDragStart): void {
     const el = event.source.element.nativeElement;
     const dragRef = event.source._dragRef as any;

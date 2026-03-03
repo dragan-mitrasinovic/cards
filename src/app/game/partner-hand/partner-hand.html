@@ -1,7 +1,7 @@
 <div class="partner-hand-area">
   <p class="partner-name">{{ partnerName() }}</p>
   <div class="partner-cards">
-    @for (i of cardSlots; track i) {
+    @for (i of cardSlots(); track i) {
       <app-card [faceUp]="false" [disabled]="true" />
     }
     @if (remainingCards() === 0) {

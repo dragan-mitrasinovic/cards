@@ -15,6 +15,7 @@ export class CardComponent {
   readonly disabled = input(false);
   readonly revealed = input(false);
 
+  /** Used by HandComponent for card selection. Unused on board (pointer-events-none). */
   readonly clicked = output<void>();
 
   suitSymbol(suit: Suit): string {
@@ -27,6 +28,6 @@ export class CardComponent {
   }
 
   suitColor(suit: Suit): string {
-    return suit === 'H' || suit === 'D' ? 'red' : 'black';
+    return suit === 'H' || suit === 'D' ? 'suit-red' : 'suit-black';
   }
 }

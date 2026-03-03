@@ -1,4 +1,7 @@
-
+
+/* Custom component styles use :host-context(.dark) for dark mode.
+   Template utility classes use Tailwind dark: variants. */
+
 .board-wrapper {
   border: 2px solid transparent;
   border-radius: 12px;
@@ -9,6 +12,11 @@
 .board-wrapper.swap-mode-active {
   background: #faf5ff;
   border-color: #a855f7;
+}
+
+:host-context(.dark) .board-wrapper.swap-mode-active {
+  background: rgba(88, 28, 135, 0.2);
+  border-color: #c084fc;
 }
 
 
@@ -33,6 +41,16 @@
 .turn-banner.waiting-turn {
   color: #64748b;
   background: #f1f5f9;
+}
+
+:host-context(.dark) .turn-banner.my-turn {
+  color: #93c5fd;
+  background: rgba(30, 64, 175, 0.3);
+}
+
+:host-context(.dark) .turn-banner.waiting-turn {
+  color: #94a3b8;
+  background: rgba(30, 41, 59, 0.5);
 }
 
 .waiting-dot {

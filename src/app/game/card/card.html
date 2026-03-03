@@ -9,10 +9,10 @@
   (click)="clicked.emit()"
 >
   @if (faceUp() && card(); as c) {
-    <span class="card-value" [style.color]="suitColor(c.suit)">
+    <span class="card-value" [class.suit-red]="suitColor(c.suit) === 'suit-red'" [class.suit-black]="suitColor(c.suit) === 'suit-black'">
       {{ c.value }}
     </span>
-    <span class="card-suit" [style.color]="suitColor(c.suit)">
+    <span class="card-suit" [class.suit-red]="suitColor(c.suit) === 'suit-red'" [class.suit-black]="suitColor(c.suit) === 'suit-black'">
       {{ suitSymbol(c.suit) }}
     </span>
   } @else if (!faceUp()) {
