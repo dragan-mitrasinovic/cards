@@ -17,5 +17,8 @@
     </span>
   } @else if (!faceUp()) {
     <span class="card-back">🂠</span>
+    @if (ownCard()) {
+      <span class="own-dot"></span>
+    }
   }
 </button>

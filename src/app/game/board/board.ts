@@ -1,10 +1,11 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { CdkDropList, CdkDragDrop } from '@angular/cdk/drag-drop';
 import { BoardSlot } from '../../shared/game-state.service';
 import { CardComponent } from '../card/card';
 
 @Component({
   selector: 'app-board',
-  imports: [CardComponent],
+  imports: [CardComponent, CdkDropList],
   templateUrl: './board.html',
   styleUrl: './board.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -23,6 +24,9 @@ export class BoardComponent {
   /** Whether the board is in reveal mode (cards flip face-up). */
   readonly revealMode = input(false);
 
+  /** Whether drag-and-drop is enabled. */
+  readonly dragEnabled = input(false);
+
   /** Indices of slots selected for swapping. */
   readonly selectedSwapSlots = input<number[]>([]);
 
@@ -34,6 +38,9 @@ export class BoardComponent {
 
   /** Emitted when a player clicks their own card to peek. */
   readonly slotPeek = output<number>();
+
+  /** Emitted when a card is dropped on a slot via drag and drop. */
+  readonly cardDropped = output<{ cardIndex: number, slotIndex: number }>();
 
   onSlotClick(index: number): void {
     if (this.swapMode()) {
@@ -51,28 +58,44 @@ export class BoardComponent {
     }
   }
 
+  onDrop(event: CdkDragDrop<number>, slotIndex: number): void {
+    const cardIndex = event.item.data as number;
+    const slot = this.board()[slotIndex];
+
+    if (!slot.occupied && this.isMyTurn() && !this.swapMode()) {
+      this.cardDropped.emit({ cardIndex, slotIndex });
+    }
+  }
+
+  canDrop = (slotIndex: number) => {
+    return (): boolean => {
+      const slot = this.board()[slotIndex];
+      return !slot.occupied && this.isMyTurn() && !this.swapMode();
+    };
+  };
+
   isSwapSelected(index: number): boolean {
     return this.selectedSwapSlots().includes(index);
   }
 
-  /** Card width used for SVG arrow calculations. */
-  private readonly cardWidth = 80;
-  private readonly boardGap = 8;
+  /** Returns swap info for a given slot, or null if the slot is not part of any accepted swap. */
+  getSlotSwapInfo(index: number): { byPlayer: number } | null {
+    for (const swap of this.swapHistory()) {
+      if (swap.slotA === index || swap.slotB === index) {
+        return { byPlayer: swap.byPlayer };
+      }
+    }
 
-  getSwapArrowPath(slotA: number, slotB: number): string {
-    const halfCard = this.cardWidth / 2;
-    const step = this.cardWidth + this.boardGap;
-    const x1 = 16 + halfCard + slotA * step;
-    const x2 = 16 + halfCard + slotB * step;
-    const midX = (x1 + x2) / 2;
-    return `M${x1},8 Q${midX},45 ${x2},8`;
+    return null;
   }
 
-  getSwapDotX(slotIndex: number): number {
-    const halfCard = this.cardWidth / 2;
-    const step = this.cardWidth + this.boardGap;
-    return 16 + halfCard + slotIndex * step;
+  isSlotSwappedByMe(index: number): boolean {
+    const info = this.getSlotSwapInfo(index);
+    return info !== null && info.byPlayer === this.playerNumber();
   }
 
-  readonly svgViewBox = `0 0 ${15 * 80 + 14 * 8 + 2 * 16} 50`;
+  isSlotSwappedByPartner(index: number): boolean {
+    const info = this.getSlotSwapInfo(index);
+    return info !== null && info.byPlayer !== this.playerNumber();
+  }
 }

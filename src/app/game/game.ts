@@ -3,6 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map, Subscription } from 'rxjs';
 import { FormsModule } from '@angular/forms';
+import { CdkDropListGroup } from '@angular/cdk/drag-drop';
 import { WebSocketService } from '../shared/websocket.service';
 import { GameStateService, type TurnOrderPreference } from '../shared/game-state.service';
 import { PlayerJoinedMessage, PlayerDisconnectedMessage, PlayerReconnectedMessage, ErrorMessage, TurnOrderPromptMessage, TurnOrderResultMessage, GameStartMessage, CardPlacedMessage, PlayerPassedMessage, PeekResultMessage, SwapPromptMessage, SwapSuggestedMessage, SwapResultMessage, RevealCardMessage, GameResultMessage, PlayAgainWaitingMessage, EmoteReceivedMessage } from '../shared/messages';
@@ -14,10 +15,11 @@ import { RevealPhaseComponent } from './reveal-phase/reveal-phase';
 import { GameOverComponent } from './game-over/game-over';
 import { EmoteBarComponent } from './emote-bar/emote-bar';
 import { EmoteDisplayComponent } from './emote-display/emote-display';
+import { PartnerHandComponent } from './partner-hand/partner-hand';
 
 @Component({
   selector: 'app-game',
-  imports: [FormsModule, TurnOrderPickComponent, BoardComponent, HandComponent, SwapPhaseComponent, RevealPhaseComponent, GameOverComponent, EmoteBarComponent, EmoteDisplayComponent],
+  imports: [FormsModule, CdkDropListGroup, TurnOrderPickComponent, BoardComponent, HandComponent, SwapPhaseComponent, RevealPhaseComponent, GameOverComponent, EmoteBarComponent, EmoteDisplayComponent, PartnerHandComponent],
   templateUrl: './game.html',
   styleUrl: './game.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -38,7 +40,14 @@ export class GameComponent implements OnInit, OnDestroy {
   readonly selectedCardIndex = signal(-1);
   readonly selectedSwapSlots = signal<number[]>([]);
   readonly placementSwapMode = signal(false);
-  readonly receivedEmote = signal<string | null>(null);
+  readonly activeEmote = signal<{ text: string; fromSelf: boolean } | null>(null);
+  readonly partnerPlayerNumber = computed(() => this.gameState.playerNumber() === 1 ? 2 : 1);
+  readonly partnerRemainingCards = computed(() =>
+    7 - this.gameState.board().filter(s => s.byPlayer === this.partnerPlayerNumber()).length
+  );
+  readonly isDragEnabled = computed(() =>
+    this.gameState.phase() === 'placement' && !this.placementSwapMode() && this.gameState.isMyTurn()
+  );
   joinName = '';
 
   private messagesSub?: Subscription;
@@ -239,14 +248,7 @@ export class GameComponent implements OnInit, OnDestroy {
         }
         case 'emote_received': {
           const emoteMsg = msg as EmoteReceivedMessage;
-          if (this.emoteTimeout) {
-            clearTimeout(this.emoteTimeout);
-          }
-          this.receivedEmote.set(emoteMsg.emote);
-          this.emoteTimeout = setTimeout(() => {
-            this.receivedEmote.set(null);
-            this.emoteTimeout = null;
-          }, 2500);
+          this.showEmote(emoteMsg.emote, false);
           break;
         }
         case 'error': {
@@ -315,6 +317,10 @@ export class GameComponent implements OnInit, OnDestroy {
     }
   }
 
+  onCardDropped(event: { cardIndex: number, slotIndex: number }): void {
+    this.placeCard(event.cardIndex, event.slotIndex);
+  }
+
   pass(): void {
     this.ws.send({ type: 'pass' });
   }
@@ -376,7 +382,14 @@ export class GameComponent implements OnInit, OnDestroy {
     if (this.placementSwapMode()) {
       this.onSwapSlotClick(slotIndex);
     } else {
-      this.peek(slotIndex);
+      const slot = this.gameState.board()[slotIndex];
+      if (slot.card) {
+        const b = [...this.gameState.board()];
+        b[slotIndex] = { ...b[slotIndex], card: undefined };
+        this.gameState.board.set(b);
+      } else {
+        this.peek(slotIndex);
+      }
     }
   }
 
@@ -387,6 +400,19 @@ export class GameComponent implements OnInit, OnDestroy {
 
   sendEmote(emote: string): void {
     this.ws.send({ type: 'send_emote', emote });
+    this.showEmote(emote, true);
+  }
+
+  private showEmote(text: string, fromSelf: boolean): void {
+    if (this.emoteTimeout) {
+      clearTimeout(this.emoteTimeout);
+    }
+
+    this.activeEmote.set({ text, fromSelf });
+    this.emoteTimeout = setTimeout(() => {
+      this.activeEmote.set(null);
+      this.emoteTimeout = null;
+    }, 2500);
   }
 
   leaveGame(): void {

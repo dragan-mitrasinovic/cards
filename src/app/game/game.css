@@ -1,1 +1,52 @@
+
+.board-wrapper {
+  border: 2px solid transparent;
+  border-radius: 12px;
+  padding: 8px;
+  transition: background-color 0.2s, border-color 0.2s;
+}
 
+.board-wrapper.swap-mode-active {
+  background: #faf5ff;
+  border-color: #a855f7;
+}
+
+
+.turn-banner {
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  margin-left: auto;
+  margin-right: auto;
+  width: fit-content;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.turn-banner.my-turn {
+  color: #1d4ed8;
+  background: #dbeafe;
+}
+
+.turn-banner.waiting-turn {
+  color: #64748b;
+  background: #f1f5f9;
+}
+
+.waiting-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #94a3b8;
+  margin-right: 6px;
+  vertical-align: middle;
+  animation: pulse-dot 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}

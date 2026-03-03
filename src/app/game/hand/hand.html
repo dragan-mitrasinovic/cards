@@ -1,14 +1,31 @@
 <div class="hand-container">
-  <div class="hand">
+  <div
+    class="hand"
+    cdkDropList
+    id="hand-drag-source"
+    [cdkDropListSortingDisabled]="true"
+  >
     @for (card of hand(); track $index) {
       @if (!handUsed()[$index]) {
-        <app-card
-          [card]="card"
-          [faceUp]="true"
-          [selected]="selectedIndex() === $index"
-          [disabled]="!isMyTurn()"
-          (clicked)="onCardClick($index)"
-        />
+        <div
+          class="hand-card-wrapper"
+          cdkDrag
+          [cdkDragData]="$index"
+          [cdkDragDisabled]="!dragEnabled() || !isMyTurn()"
+          (cdkDragStarted)="onDragStarted($event)"
+        >
+          <app-card
+            [card]="card"
+            [faceUp]="true"
+            [selected]="selectedIndex() === $index"
+            [disabled]="!isMyTurn()"
+            (clicked)="onCardClick($index)"
+          />
+          <div *cdkDragPreview class="drag-preview">
+            <app-card [card]="card" [faceUp]="true" />
+          </div>
+          <div *cdkDragPlaceholder class="drag-placeholder"></div>
+        </div>
       }
     }
   </div>

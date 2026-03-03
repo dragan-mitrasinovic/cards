@@ -13,10 +13,43 @@
   padding: 0 16px;
 }
 
+.hand-card-wrapper {
+  flex-shrink: 0;
+  cursor: grab;
+}
+
+.hand-card-wrapper:active {
+  cursor: grabbing;
+}
+
+.hand-card-wrapper.cdk-drag-disabled {
+  cursor: default;
+}
+
+.drag-preview {
+  opacity: 0.85;
+  transform: scale(1.05);
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.2));
+}
+
+.drag-placeholder {
+  width: var(--card-width, 104px);
+  height: var(--card-height, 156px);
+  border-radius: 10px;
+  border: 2px dashed #93c5fd;
+  background: #eff6ff;
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+
+.cdk-drag-animating {
+  transition: transform 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
 @media (max-width: 767px) {
   :host {
-    --card-width: 56px;
-    --card-height: 84px;
+    --card-width: 73px;
+    --card-height: 109px;
   }
 
   .hand {

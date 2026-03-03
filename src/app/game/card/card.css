@@ -1,7 +1,7 @@
 .card {
-  width: var(--card-width, 80px);
-  height: var(--card-height, 120px);
-  border-radius: 8px;
+  width: var(--card-width, 104px);
+  height: var(--card-height, 156px);
+  border-radius: 10px;
   border: 2px solid #d1d5db;
   display: flex;
   flex-direction: column;
@@ -60,38 +60,45 @@
   transform: translateY(-8px);
 }
 
-.card.own-card {
-  border-style: dashed;
+.own-dot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.85);
+  pointer-events: none;
 }
 
 .card-value {
-  font-size: 1.5rem;
+  font-size: 2rem;
   font-weight: 700;
   line-height: 1;
 }
 
 .card-suit {
-  font-size: 1.75rem;
+  font-size: 2.25rem;
   line-height: 1;
-  margin-top: 2px;
+  margin-top: 3px;
 }
 
 .card-back {
-  font-size: 2.5rem;
+  font-size: 3.25rem;
   color: white;
   opacity: 0.6;
 }
 
 @media (max-width: 767px) {
   .card-value {
-    font-size: 1.125rem;
+    font-size: 1.5rem;
   }
 
   .card-suit {
-    font-size: 1.25rem;
+    font-size: 1.625rem;
   }
 
   .card-back {
-    font-size: 1.75rem;
+    font-size: 2.25rem;
   }
 }

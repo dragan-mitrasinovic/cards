@@ -15,15 +15,16 @@
 }
 
 .slot {
-  width: var(--card-width, 80px);
-  height: var(--card-height, 120px);
-  border-radius: 8px;
+  position: relative;
+  width: var(--card-width, 104px);
+  height: var(--card-height, 156px);
+  border-radius: 10px;
   border: 2px dashed #d1d5db;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: border-color 0.15s, background-color 0.15s;
+  transition: border-color 0.15s, background-color 0.15s, box-shadow 0.15s;
   cursor: default;
   scroll-snap-align: center;
 }
@@ -69,20 +70,68 @@
   font-weight: 500;
 }
 
-.swap-arrows {
-  display: block;
-  width: calc(15 * var(--card-width, 80px) + 14 * var(--board-gap, 8px) + 2 * 16px);
-  height: 24px;
-  margin: 4px auto 0;
-  pointer-events: none;
-  flex-shrink: 0;
+.slot-drop-target.cdk-drop-list-dragging:not(.cdk-drop-list-disabled) {
+  border-color: #3b82f6;
+  background: #dbeafe;
+  animation: dropPulse 1s ease-in-out infinite;
 }
+
+@keyframes dropPulse {
+  0%, 100% { box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2); }
+  50% { box-shadow: 0 0 0 5px rgba(59, 130, 246, 0.1); }
+}
+
+.slot-swapped-mine {
+  border-color: #7c3aed;
+  border-style: solid;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.3);
+  animation: swapGlow-mine 2s ease-in-out infinite;
+}
+
+.slot-swapped-partner {
+  border-color: #0ea5e9;
+  border-style: solid;
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.3);
+  animation: swapGlow-partner 2s ease-in-out infinite;
+}
+
+@keyframes swapGlow-mine {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.3); }
+  50% { box-shadow: 0 0 0 5px rgba(124, 58, 237, 0.15); }
+}
+
+@keyframes swapGlow-partner {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.3); }
+  50% { box-shadow: 0 0 0 5px rgba(14, 165, 233, 0.15); }
+}
+
+.swap-badge {
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #0ea5e9;
+  color: white;
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 9999px;
+  pointer-events: none;
+  z-index: 10;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.swap-badge-mine {
+  background: #7c3aed;
+}
+
 
 /* Mobile: smaller cards */
 @media (max-width: 767px) {
   :host {
-    --card-width: 56px;
-    --card-height: 84px;
+    --card-width: 73px;
+    --card-height: 109px;
     --board-gap: 4px;
   }
 }

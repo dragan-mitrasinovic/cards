@@ -8,6 +8,14 @@
         [class.slot-peekable]="slot.occupied && slot.byPlayer === playerNumber() && !swapMode()"
         [class.slot-swappable]="slot.occupied && swapMode()"
         [class.slot-swap-selected]="isSwapSelected($index)"
+        [class.slot-swapped-mine]="isSlotSwappedByMe($index)"
+        [class.slot-swapped-partner]="isSlotSwappedByPartner($index)"
+        [class.slot-drop-target]="!slot.occupied && dragEnabled() && isMyTurn()"
+        cdkDropList
+        [cdkDropListData]="$index"
+        [cdkDropListDisabled]="!dragEnabled() || slot.occupied || !isMyTurn() || swapMode()"
+        [cdkDropListEnterPredicate]="canDrop($index)"
+        (cdkDropListDropped)="onDrop($event, $index)"
         (click)="onSlotClick($index)"
       >
         @if (slot.occupied) {
@@ -21,24 +29,10 @@
         } @else {
           <span class="slot-number">{{ $index + 1 }}</span>
         }
+        @if (getSlotSwapInfo($index)) {
+          <span class="swap-badge" [class.swap-badge-mine]="isSlotSwappedByMe($index)">↔</span>
+        }
       </div>
     }
   </div>
-  @if (swapHistory().length > 0) {
-    <svg class="swap-arrows" [attr.viewBox]="svgViewBox" preserveAspectRatio="none">
-      @for (swap of swapHistory(); track $index) {
-        <path
-          [attr.d]="getSwapArrowPath(swap.slotA, swap.slotB)"
-          [attr.stroke]="swap.byPlayer === playerNumber() ? '#7c3aed' : '#0ea5e9'"
-          fill="none"
-          stroke-width="3"
-          stroke-linecap="round"
-        />
-        <circle [attr.cx]="getSwapDotX(swap.slotA)" cy="8" r="5"
-          [attr.fill]="swap.byPlayer === playerNumber() ? '#7c3aed' : '#0ea5e9'" />
-        <circle [attr.cx]="getSwapDotX(swap.slotB)" cy="8" r="5"
-          [attr.fill]="swap.byPlayer === playerNumber() ? '#7c3aed' : '#0ea5e9'" />
-      }
-    </svg>
-  }
 </div>
