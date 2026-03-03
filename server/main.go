@@ -8,15 +8,25 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
 	"github.com/gorilla/websocket"
 )
 
+// allowedOrigins is populated from the ALLOWED_ORIGINS env var (comma-separated).
+// If empty, all origins are allowed (development mode).
+var allowedOrigins map[string]bool
+
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
-		return true // Allow all origins in development
+		if len(allowedOrigins) == 0 {
+			return true
+		}
+
+		origin := r.Header.Get("Origin")
+		return allowedOrigins[origin]
 	},
 }
 
@@ -72,10 +82,37 @@ func main() {
 	staticDir := flag.String("static", "", "directory to serve static files from (Angular dist)")
 	flag.Parse()
 
+	// Port from env or default
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	// Parse allowed origins from env (comma-separated)
+	if origins := os.Getenv("ALLOWED_ORIGINS"); origins != "" {
+		allowedOrigins = make(map[string]bool)
+		for _, o := range strings.Split(origins, ",") {
+			o = strings.TrimSpace(o)
+			if o != "" {
+				allowedOrigins[o] = true
+			}
+		}
+
+		slog.Info("CORS origin allowlist configured", "origins", origins)
+	} else {
+		slog.Warn("ALLOWED_ORIGINS not set, accepting all origins")
+	}
+
 	rooms := NewRoomManager()
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/ws", handleWebSocket(rooms))
+
+	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"status":"ok"}`))
+	})
 
 	if *staticDir != "" {
 		slog.Info("serving static files", "dir", *staticDir)
@@ -83,7 +120,7 @@ func main() {
 	}
 
 	server := &http.Server{
-		Addr:    ":8080",
+		Addr:    ":" + port,
 		Handler: mux,
 	}
 
