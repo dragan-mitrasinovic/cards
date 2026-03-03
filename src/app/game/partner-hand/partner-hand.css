@@ -25,6 +25,8 @@
   display: flex;
   gap: 6px;
   justify-content: center;
+  min-height: var(--partner-card-height);
+  align-items: center;
 }
 
 .partner-cards app-card {

@@ -1,71 +1,77 @@
 <div class="swap-phase">
-  <!-- Player bar -->
-  <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between px-3 sm:px-4 py-2 bg-gray-50 rounded-lg mb-4 gap-1 sm:gap-0">
-    <div class="flex items-center gap-2 sm:gap-4">
-      <span class="font-semibold text-sm sm:text-base">{{ playerName() }}</span>
-      <span class="text-gray-400">&amp;</span>
-      <span class="font-semibold text-sm sm:text-base">{{ partnerName() }}</span>
-    </div>
-    <div class="flex items-center gap-4 text-sm text-gray-500">
-      <span class="text-purple-600 font-medium">Swap Phase</span>
-    </div>
+  <!-- Turn indicator (consistent with placement phase) -->
+  <div
+    class="text-center text-sm font-medium py-1.5 px-3 rounded-lg mb-2 mx-auto w-fit"
+    [class.text-blue-700]="isMyTurn() && !swapPending()"
+    [class.bg-blue-100]="isMyTurn() && !swapPending()"
+    [class.text-slate-500]="!isMyTurn() || swapPending()"
+    [class.bg-slate-100]="!isMyTurn() || swapPending()"
+  >
+    @if (swapPending()) {
+      @if (swapSuggester() === playerNumber()) {
+        <span><span class="inline-block w-1.5 h-1.5 rounded-full bg-slate-400 mr-1.5 align-middle animate-pulse"></span>Swap suggested — waiting for {{ partnerName() }}…</span>
+      } @else {
+        <span>{{ partnerName() }} wants to swap</span>
+      }
+    } @else if (isMyTurn()) {
+      <span>Your turn — suggest a swap or skip</span>
+    } @else {
+      <span><span class="inline-block w-1.5 h-1.5 rounded-full bg-slate-400 mr-1.5 align-middle animate-pulse"></span>Waiting for {{ partnerName() }}…</span>
+    }
   </div>
 
-  @if (swapPending()) {
-    <div class="flex flex-col items-center gap-4 mb-4 p-4 bg-purple-50 rounded-lg border border-purple-200">
-      @if (swapSuggester() === playerNumber()) {
-        <p class="text-purple-700 font-medium">You suggested swapping the highlighted cards</p>
-        <p class="text-sm text-gray-500">Waiting for {{ partnerName() }} to respond…</p>
-      } @else {
-        <p class="text-purple-700 font-medium">{{ partnerName() }} wants to swap the highlighted cards</p>
-        <div class="flex gap-3">
-          <button
-            (click)="respondSwap.emit(true)"
-            class="px-4 py-2 bg-green-500 text-white rounded-md font-medium hover:bg-green-600"
-          >
-            Accept
-          </button>
-          <button
-            (click)="respondSwap.emit(false)"
-            class="px-4 py-2 bg-red-500 text-white rounded-md font-medium hover:bg-red-600"
-          >
-            Reject
-          </button>
-        </div>
-      }
+  <!-- Board -->
+  <div
+    class="border-2 rounded-xl p-2 transition-colors duration-200"
+    [class.bg-purple-50]="boardSwapMode"
+    [class.border-purple-500]="boardSwapMode"
+    [class.border-transparent]="!boardSwapMode"
+  >
+    <app-board
+      [board]="board()"
+      [playerNumber]="playerNumber()"
+      [isMyTurn]="isMyTurn()"
+      [selectedCardIndex]="-1"
+      [swapMode]="boardSwapMode"
+      [selectedSwapSlots]="displaySwapSlots"
+      [swapHistory]="swapHistory()"
+      (slotPlace)="onSlotClick($event)"
+      (slotPeek)="onSlotClick($event)"
+    />
+  </div>
+
+  <!-- Action area below board (matching placement phase layout) -->
+  @if (swapPending() && swapSuggester() !== playerNumber()) {
+    <div class="flex items-center justify-center gap-4 mt-3 px-4 py-2 bg-purple-50 rounded-lg border border-purple-200">
+      <span class="text-purple-700 text-sm font-medium">{{ partnerName() }} wants to swap the highlighted cards</span>
+      <button (click)="respondSwap.emit(true)" class="px-3 py-1 text-sm bg-green-500 text-white rounded-md font-medium hover:bg-green-600">
+        Accept
+      </button>
+      <button (click)="respondSwap.emit(false)" class="px-3 py-1 text-sm bg-red-500 text-white rounded-md font-medium hover:bg-red-600">
+        Reject
+      </button>
     </div>
-  } @else if (isMyTurn()) {
-    <div class="flex flex-col items-center gap-2 mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-      <p class="text-blue-700 font-medium">Your turn to suggest a swap</p>
-      <p class="text-sm text-gray-500">Click any two cards on the board, or skip</p>
-      @if (selectedSwapSlots().length === 1) {
-        <p class="text-sm text-blue-600">Selected slot {{ selectedSwapSlots()[0] + 1 }} — now click another card</p>
-      }
+  } @else if (boardSwapMode) {
+    <div class="flex justify-center items-center gap-3 mt-4">
+      <span class="text-purple-700 text-sm font-medium">
+        @if (selectedSwapSlots().length === 1) {
+          Selected slot {{ selectedSwapSlots()[0] + 1 }} — click another card
+        } @else {
+          Click two cards to swap
+        }
+      </span>
       <button
         (click)="skipSwap.emit()"
-        class="mt-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-md font-medium hover:bg-gray-300"
+        class="px-4 py-2 text-sm bg-gray-200 text-gray-700 rounded-md font-medium hover:bg-gray-300"
       >
         Skip Swap
       </button>
     </div>
-  } @else {
-    <div class="flex flex-col items-center gap-2 mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-      <p class="text-gray-600 font-medium">Waiting for {{ partnerName() }} to suggest a swap…</p>
+  } @else if (!isMyTurn() && !swapPending()) {
+    <div class="flex justify-center items-center gap-3 mt-4">
       @if (swapAccepted()[playerNumber() - 1]) {
-        <p class="text-sm text-gray-400">Your swap was already used</p>
+        <span class="text-sm text-gray-400">Your swap was already used</span>
       }
     </div>
   }
-
-  <app-board
-    [board]="board()"
-    [playerNumber]="playerNumber()"
-    [isMyTurn]="isMyTurn()"
-    [selectedCardIndex]="-1"
-    [swapMode]="boardSwapMode"
-    [selectedSwapSlots]="displaySwapSlots"
-    [swapHistory]="swapHistory()"
-    (slotPlace)="onSlotClick($event)"
-    (slotPeek)="onSlotClick($event)"
-  />
 </div>

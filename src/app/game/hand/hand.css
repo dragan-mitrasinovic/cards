@@ -18,6 +18,11 @@
   cursor: grab;
 }
 
+.hand-card-wrapper.hand-card-used {
+  visibility: hidden;
+  pointer-events: none;
+}
+
 .hand-card-wrapper:active {
   cursor: grabbing;
 }

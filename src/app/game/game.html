@@ -2,7 +2,7 @@
 <app-emote-display [emote]="activeEmote()?.fromSelf ? activeEmote()?.text ?? null : null" position="bottom" />
 
 <div class="flex flex-col min-h-screen p-4 sm:p-4 px-2">
-  <header class="flex justify-between items-center pb-4 border-b border-gray-200">
+  <header class="relative z-10 flex justify-between items-center pb-4 border-b border-gray-200">
     <h1 class="m-0 text-2xl font-bold">Cards</h1>
     <div class="flex items-center gap-2">
       <span
@@ -231,34 +231,62 @@
         </div>
       </div>
     } @else if (gameState.phase() === 'swap') {
-      <div class="flex-1 flex flex-col justify-center">
-      <app-swap-phase
-        [playerName]="gameState.playerName()"
-        [partnerName]="gameState.partnerName()"
-        [playerNumber]="gameState.playerNumber()"
-        [isMyTurn]="gameState.isMyTurn()"
-        [swapPending]="gameState.swapPending()"
-        [swapSuggester]="gameState.swapSuggester()"
-        [swapSlots]="gameState.swapSlots()"
-        [swapAccepted]="gameState.swapAccepted()"
-        [board]="gameState.board()"
-        [swapHistory]="gameState.swapHistory()"
-        (respondSwap)="respondSwap($event)"
-        (skipSwap)="skipSwap()"
-        (suggestSwap)="suggestSwap($event.slotA, $event.slotB)"
-      />
+      <div class="flex-1 flex flex-col">
+        <div class="flex-1 flex flex-col justify-center">
+          <app-swap-phase
+            [playerName]="gameState.playerName()"
+            [partnerName]="gameState.partnerName()"
+            [playerNumber]="gameState.playerNumber()"
+            [isMyTurn]="gameState.isMyTurn()"
+            [swapPending]="gameState.swapPending()"
+            [swapSuggester]="gameState.swapSuggester()"
+            [swapSlots]="gameState.swapSlots()"
+            [swapAccepted]="gameState.swapAccepted()"
+            [board]="gameState.board()"
+            [swapHistory]="gameState.swapHistory()"
+            (respondSwap)="respondSwap($event)"
+            (skipSwap)="skipSwap()"
+            (suggestSwap)="suggestSwap($event.slotA, $event.slotB)"
+          />
+        </div>
+
+        <!-- Hand -->
+        <div class="relative mt-auto pt-5 pb-3 bg-gradient-to-b from-slate-50 to-slate-100 border-t-2 border-slate-200 rounded-t-xl">
+          <p class="text-xs text-slate-400 text-center mb-2 uppercase tracking-wider font-semibold">Your hand</p>
+          <app-hand
+            [hand]="gameState.hand()"
+            [handUsed]="gameState.handUsed()"
+          />
+          <div class="absolute right-3 bottom-3">
+            <app-emote-bar (emoteSent)="sendEmote($event)" />
+          </div>
+        </div>
       </div>
     } @else if (gameState.phase() === 'reveal') {
-      <div class="flex-1 flex flex-col justify-center">
-      <app-reveal-phase
-        [playerName]="gameState.playerName()"
-        [partnerName]="gameState.partnerName()"
-        [playerNumber]="gameState.playerNumber()"
-        [board]="gameState.board()"
-        [revealedCount]="gameState.revealedCount()"
-        [totalRevealCards]="gameState.totalRevealCards()"
-        [swapHistory]="gameState.swapHistory()"
-      />
+      <div class="flex-1 flex flex-col">
+        <div class="flex-1 flex flex-col justify-center">
+          <app-reveal-phase
+            [playerName]="gameState.playerName()"
+            [partnerName]="gameState.partnerName()"
+            [playerNumber]="gameState.playerNumber()"
+            [board]="gameState.board()"
+            [revealedCount]="gameState.revealedCount()"
+            [totalRevealCards]="gameState.totalRevealCards()"
+            [swapHistory]="gameState.swapHistory()"
+          />
+        </div>
+
+        <!-- Hand -->
+        <div class="relative mt-auto pt-5 pb-3 bg-gradient-to-b from-slate-50 to-slate-100 border-t-2 border-slate-200 rounded-t-xl">
+          <p class="text-xs text-slate-400 text-center mb-2 uppercase tracking-wider font-semibold">Your hand</p>
+          <app-hand
+            [hand]="gameState.hand()"
+            [handUsed]="gameState.handUsed()"
+          />
+          <div class="absolute right-3 bottom-3">
+            <app-emote-bar (emoteSent)="sendEmote($event)" />
+          </div>
+        </div>
       </div>
     } @else if (gameState.phase() === 'game_over') {
       <div class="flex-1 flex flex-col justify-center">
