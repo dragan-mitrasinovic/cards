@@ -1,11 +1,21 @@
 <app-emote-display [emote]="activeEmote()?.fromSelf ? null : activeEmote()?.text ?? null" position="top" />
 <app-emote-display [emote]="activeEmote()?.fromSelf ? activeEmote()?.text ?? null : null" position="bottom" />
 
-<div class="flex flex-col min-h-dvh p-4 sm:p-4 px-2">
+<div [class]="'flex flex-col min-h-dvh p-4 sm:p-4 px-2 ' + gameThemeClass()">
   <header class="relative z-10 flex justify-between items-center pb-4 border-b border-gray-200 dark:border-gray-700">
     <h1 class="m-0 text-2xl font-bold">Cards</h1>
     <div class="flex items-center gap-2">
       <app-theme-toggle />
+      <button
+        (click)="cardStylePickerOpen.set(!cardStylePickerOpen())"
+        title="Card style"
+        class="p-1.5 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+      </button>
       <span
         class="inline-block w-3 h-3 rounded-full"
         [class.bg-green-500]="ws.status() === 'connected'"
@@ -254,8 +264,8 @@
 
       <!-- Hand (shared across turn_order_pick, placement, swap, reveal phases) -->
       @if (showHand()) {
-        <div class="relative mt-auto pt-5 pb-3 bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 border-t-2 border-slate-200 dark:border-slate-700 rounded-t-xl">
-          <p class="text-xs text-slate-400 dark:text-slate-500 text-center mb-2 uppercase tracking-wider font-semibold">Your hand</p>
+        <div class="hand-area relative mt-auto pt-5 pb-3 border-t-2 rounded-t-xl">
+          <p class="text-xs text-center mb-2 uppercase tracking-wider font-semibold hand-label">Your hand</p>
           <app-hand
             [hand]="gameState.hand()"
             [handUsed]="gameState.handUsed()"
@@ -272,3 +282,7 @@
     </div>
   }
 </div>
+
+@if (cardStylePickerOpen()) {
+  <app-card-style-picker (closed)="cardStylePickerOpen.set(false)" />
+}

@@ -1,0 +1,224 @@
+.picker-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  animation: fadeIn 0.15s ease-out;
+}
+
+:host-context(.dark) .picker-backdrop {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.picker-modal {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 640px;
+  width: calc(100% - 32px);
+  max-height: calc(100dvh - 64px);
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.2s ease-out;
+}
+
+:host-context(.dark) .picker-modal {
+  background: #1f2937;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes slideUp {
+  from { transform: translateY(12px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.picker-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.picker-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+:host-context(.dark) .picker-title {
+  color: #f3f4f6;
+}
+
+.picker-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #9ca3af;
+  padding: 4px;
+  border-radius: 6px;
+  transition: color 0.15s, background-color 0.15s;
+}
+
+.picker-close:hover {
+  color: #374151;
+  background: #f3f4f6;
+}
+
+:host-context(.dark) .picker-close:hover {
+  color: #e5e7eb;
+  background: #374151;
+}
+
+.picker-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+@media (max-width: 500px) {
+  .picker-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.picker-option {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 8px;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fafafa;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+
+.picker-option:hover {
+  border-color: #d1d5db;
+  background: #f3f4f6;
+}
+
+.picker-option.active {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  background: #eff6ff;
+}
+
+:host-context(.dark) .picker-option {
+  border-color: #374151;
+  background: #111827;
+}
+
+:host-context(.dark) .picker-option:hover {
+  border-color: #4b5563;
+  background: #1a2332;
+}
+
+:host-context(.dark) .picker-option.active {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.15);
+  background: #172236;
+}
+
+.preview-cards {
+  display: flex;
+  gap: 6px;
+}
+
+.preview-card {
+  width: 48px;
+  height: 68px;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid;
+}
+
+.preview-back {
+  border-color: var(--card-back-border);
+  background: var(--card-back-gradient);
+  position: relative;
+  overflow: hidden;
+}
+
+.preview-back::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 4px;
+  background-image: var(--card-back-pattern);
+  background-repeat: repeat;
+  pointer-events: none;
+}
+
+.preview-back-icon {
+  font-size: 1.25rem;
+  color: var(--card-back-color);
+  position: relative;
+  z-index: 1;
+}
+
+.preview-face {
+  background: var(--card-face-bg);
+  border-color: var(--card-face-border);
+}
+
+.preview-value {
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--suit-red);
+}
+
+.preview-suit {
+  font-size: 1rem;
+  line-height: 1;
+  color: var(--suit-red);
+}
+
+.picker-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+:host-context(.dark) .picker-label {
+  color: #d1d5db;
+}
+
+.picker-check {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #3b82f6;
+  color: white;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+:host-context(.dark) .picker-check {
+  background: #60a5fa;
+  color: #0f172a;
+}
+
+
+/* Theme custom properties are defined in styles.css (global) and cascade into these preview elements */

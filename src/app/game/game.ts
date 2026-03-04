@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { CdkDropListGroup } from '@angular/cdk/drag-drop';
 import { WebSocketService } from '../shared/websocket.service';
 import { GameStateService, type TurnOrderPreference } from '../shared/game-state.service';
+import { CardStyleService } from '../shared/card-style.service';
 import { ServerMessage } from '../shared/messages';
 import { TurnOrderPickComponent } from './turn-order-pick/turn-order-pick';
 import { BoardComponent } from './board/board';
@@ -18,10 +19,11 @@ import { EmoteDisplayComponent } from './emote-display/emote-display';
 import { PartnerHandComponent } from './partner-hand/partner-hand';
 
 import { ThemeToggleComponent } from '../shared/theme-toggle/theme-toggle';
+import { CardStylePickerComponent } from '../shared/card-style-picker/card-style-picker';
 
 @Component({
   selector: 'app-game',
-  imports: [FormsModule, CdkDropListGroup, TurnOrderPickComponent, BoardComponent, HandComponent, SwapPhaseComponent, RevealPhaseComponent, GameOverComponent, EmoteBarComponent, EmoteDisplayComponent, PartnerHandComponent, ThemeToggleComponent],
+  imports: [FormsModule, CdkDropListGroup, TurnOrderPickComponent, BoardComponent, HandComponent, SwapPhaseComponent, RevealPhaseComponent, GameOverComponent, EmoteBarComponent, EmoteDisplayComponent, PartnerHandComponent, ThemeToggleComponent, CardStylePickerComponent],
   templateUrl: './game.html',
   styleUrl: './game.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -35,6 +37,9 @@ export class GameComponent implements OnInit, OnDestroy {
   protected readonly ws = inject(WebSocketService);
   protected readonly gameState = inject(GameStateService);
 
+  private readonly cardStyleService = inject(CardStyleService);
+  readonly gameThemeClass = computed(() => `game-theme-${this.cardStyleService.style()}`);
+
   /** True when the user arrived via shareable link and needs to enter a name. */
   readonly needsJoin = signal(false);
   readonly joinError = signal('');
@@ -44,6 +49,7 @@ export class GameComponent implements OnInit, OnDestroy {
   readonly placementSwapMode = signal(false);
   readonly activeEmote = signal<{ text: string; fromSelf: boolean } | null>(null);
   readonly partnerLeftMessage = signal('');
+  readonly cardStylePickerOpen = signal(false);
   readonly partnerPlayerNumber = computed(() => this.gameState.playerNumber() === 1 ? 2 : 1);
   readonly partnerRemainingCards = computed(() =>
     7 - this.gameState.board().filter(s => s.byPlayer === this.partnerPlayerNumber()).length

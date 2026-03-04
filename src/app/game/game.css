@@ -68,3 +68,149 @@
   0%, 100% { opacity: 1; }
   50% { opacity: 0.3; }
 }
+
+/* ===== Theme UI tinting ===== */
+
+/* Hand area base (Basic) */
+.hand-area {
+  background: linear-gradient(to bottom, #f8fafc, #f1f5f9);
+  border-color: #e2e8f0;
+}
+
+:host-context(.dark) .hand-area {
+  background: linear-gradient(to bottom, #1e293b, #0f172a);
+  border-color: #334155;
+}
+
+.hand-label {
+  color: #94a3b8;
+}
+
+:host-context(.dark) .hand-label {
+  color: #64748b;
+}
+
+/* Royal hand area */
+.game-theme-royal .hand-area {
+  background: linear-gradient(to bottom, #fefce8, #fef9c3);
+  border-color: #d4a96e;
+}
+
+:host-context(.dark) .game-theme-royal .hand-area {
+  background: linear-gradient(to bottom, #27200e, #1c1505);
+  border-color: #6b5420;
+}
+
+.game-theme-royal .hand-label { color: #a3893e; }
+:host-context(.dark) .game-theme-royal .hand-label { color: #8b7630; }
+
+/* Ocean hand area */
+.game-theme-ocean .hand-area {
+  background: linear-gradient(to bottom, #f0fdfa, #ccfbf1);
+  border-color: #99f6e4;
+}
+
+:host-context(.dark) .game-theme-ocean .hand-area {
+  background: linear-gradient(to bottom, #0c2a2d, #062220);
+  border-color: #115e59;
+}
+
+.game-theme-ocean .hand-label { color: #5eead4; }
+:host-context(.dark) .game-theme-ocean .hand-label { color: #2d6a5e; }
+
+/* Ember hand area */
+.game-theme-ember .hand-area {
+  background: linear-gradient(to bottom, #fff7ed, #ffedd5);
+  border-color: #fed7aa;
+}
+
+:host-context(.dark) .game-theme-ember .hand-area {
+  background: linear-gradient(to bottom, #2a1a0e, #1c1008);
+  border-color: #6b3a12;
+}
+
+.game-theme-ember .hand-label { color: #f59e0b; }
+:host-context(.dark) .game-theme-ember .hand-label { color: #7c4a10; }
+
+/* Nightfall hand area */
+.game-theme-nightfall .hand-area {
+  background: linear-gradient(to bottom, #f5f3ff, #ede9fe);
+  border-color: #c4b5fd;
+}
+
+:host-context(.dark) .game-theme-nightfall .hand-area {
+  background: linear-gradient(to bottom, #1a1330, #120d24);
+  border-color: #3b2870;
+}
+
+.game-theme-nightfall .hand-label { color: #a78bfa; }
+:host-context(.dark) .game-theme-nightfall .hand-label { color: #4c3080; }
+
+/* Cyber hand area */
+.game-theme-cyber .hand-area {
+  background: linear-gradient(to bottom, #f0f9ff, #e0f2fe);
+  border-color: #67e8f9;
+}
+
+:host-context(.dark) .game-theme-cyber .hand-area {
+  background: linear-gradient(to bottom, #0a1520, #060e18);
+  border-color: #0e4f5e;
+}
+
+.game-theme-cyber .hand-label { color: #06b6d4; }
+:host-context(.dark) .game-theme-cyber .hand-label { color: #155e75; }
+
+/* Royal turn banner */
+.game-theme-royal .turn-banner.my-turn {
+  color: #92400e;
+  background: #fef3c7;
+}
+
+:host-context(.dark) .game-theme-royal .turn-banner.my-turn {
+  color: #fcd34d;
+  background: rgba(120, 53, 15, 0.3);
+}
+
+/* Ocean */
+.game-theme-ocean .turn-banner.my-turn {
+  color: #0f766e;
+  background: #ccfbf1;
+}
+
+:host-context(.dark) .game-theme-ocean .turn-banner.my-turn {
+  color: #5eead4;
+  background: rgba(13, 148, 136, 0.2);
+}
+
+/* Ember */
+.game-theme-ember .turn-banner.my-turn {
+  color: #c2410c;
+  background: #fff7ed;
+}
+
+:host-context(.dark) .game-theme-ember .turn-banner.my-turn {
+  color: #fdba74;
+  background: rgba(154, 52, 18, 0.3);
+}
+
+/* Nightfall */
+.game-theme-nightfall .turn-banner.my-turn {
+  color: #6d28d9;
+  background: #ede9fe;
+}
+
+:host-context(.dark) .game-theme-nightfall .turn-banner.my-turn {
+  color: #c4b5fd;
+  background: rgba(76, 29, 149, 0.3);
+}
+
+/* Cyber */
+.game-theme-cyber .turn-banner.my-turn {
+  color: #0891b2;
+  background: #ecfeff;
+}
+
+:host-context(.dark) .game-theme-cyber .turn-banner.my-turn {
+  color: #22d3ee;
+  background: rgba(8, 145, 178, 0.2);
+}

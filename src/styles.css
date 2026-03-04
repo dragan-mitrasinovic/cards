@@ -9,3 +9,188 @@
     font-family: system-ui, -apple-system, sans-serif;
   }
 }
+
+/* ===== Card theme definitions (global, cascades into components) ===== */
+
+/* Basic (default) */
+.card-theme-basic {
+  --card-face-bg: white;
+  --card-face-border: #d1d5db;
+  --card-back-gradient: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  --card-back-border: #1e40af;
+  --card-back-pattern: url("data:image/svg+xml,%3Csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 10h20M10 0v20' stroke='rgba(255,255,255,0.1)' stroke-width='1' fill='none'/%3E%3C/svg%3E");
+  --card-back-color: rgba(255, 255, 255, 0.6);
+  --card-dot-color: rgba(255, 255, 255, 0.85);
+  --suit-red: #dc2626;
+  --suit-black: #1f2937;
+  --card-selected-border: #3b82f6;
+  --card-selected-glow: rgba(59, 130, 246, 0.3);
+  --card-hover-shadow: rgba(0, 0, 0, 0.1);
+}
+
+:where(.dark, .dark *) .card-theme-basic {
+  --card-face-bg: #1f2937;
+  --card-face-border: #4b5563;
+  --card-back-gradient: linear-gradient(135deg, #2563eb, #1e3a8a);
+  --card-back-border: #1e3a8a;
+  --suit-red: #f87171;
+  --suit-black: #e5e7eb;
+  --card-selected-border: #60a5fa;
+  --card-selected-glow: rgba(96, 165, 250, 0.3);
+  --card-hover-shadow: rgba(0, 0, 0, 0.4);
+}
+
+/* Royal */
+.card-theme-royal {
+  --card-face-bg: #fef9ef;
+  --card-face-border: #c9a96e;
+  --card-back-gradient: linear-gradient(135deg, #7f1d1d, #991b1b, #7f1d1d);
+  --card-back-border: #b8860b;
+  --card-back-pattern: url("data:image/svg+xml,%3Csvg width='24' height='24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 0L24 12L12 24L0 12Z' stroke='rgba(218,165,32,0.25)' stroke-width='1' fill='none'/%3E%3C/svg%3E");
+  --card-back-color: rgba(218, 165, 32, 0.5);
+  --card-dot-color: rgba(218, 165, 32, 0.8);
+  --suit-red: #7f1d1d;
+  --suit-black: #1c1917;
+  --card-selected-border: #b8860b;
+  --card-selected-glow: rgba(184, 134, 11, 0.3);
+  --card-hover-shadow: rgba(127, 29, 29, 0.12);
+}
+
+:where(.dark, .dark *) .card-theme-royal {
+  --card-face-bg: #292018;
+  --card-face-border: #8b6914;
+  --card-back-gradient: linear-gradient(135deg, #450a0a, #7f1d1d, #450a0a);
+  --card-back-border: #8b6914;
+  --card-back-pattern: url("data:image/svg+xml,%3Csvg width='24' height='24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 0L24 12L12 24L0 12Z' stroke='rgba(218,165,32,0.15)' stroke-width='1' fill='none'/%3E%3C/svg%3E");
+  --card-back-color: rgba(218, 165, 32, 0.35);
+  --card-dot-color: rgba(218, 165, 32, 0.7);
+  --suit-red: #fca5a5;
+  --suit-black: #d6d3d1;
+  --card-selected-border: #daa520;
+  --card-selected-glow: rgba(218, 165, 32, 0.3);
+  --card-hover-shadow: rgba(0, 0, 0, 0.4);
+}
+
+/* Ocean */
+.card-theme-ocean {
+  --card-face-bg: #f0fdfa;
+  --card-face-border: #5eead4;
+  --card-back-gradient: linear-gradient(135deg, #0d9488, #0891b2);
+  --card-back-border: #0e7490;
+  --card-back-pattern: url("data:image/svg+xml,%3Csvg width='40' height='20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 10c5-5 10-5 15 0s10 5 15 0s10-5 15 0' stroke='rgba(255,255,255,0.15)' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+  --card-back-color: rgba(255, 255, 255, 0.55);
+  --card-dot-color: rgba(255, 255, 255, 0.85);
+  --suit-red: #b91c1c;
+  --suit-black: #134e4a;
+  --card-selected-border: #0d9488;
+  --card-selected-glow: rgba(13, 148, 136, 0.3);
+  --card-hover-shadow: rgba(13, 148, 136, 0.12);
+}
+
+:where(.dark, .dark *) .card-theme-ocean {
+  --card-face-bg: #0f2b2e;
+  --card-face-border: #2dd4bf;
+  --card-back-gradient: linear-gradient(135deg, #065f5b, #155e75);
+  --card-back-border: #115e59;
+  --card-back-pattern: url("data:image/svg+xml,%3Csvg width='40' height='20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 10c5-5 10-5 15 0s10 5 15 0s10-5 15 0' stroke='rgba(255,255,255,0.1)' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+  --card-back-color: rgba(255, 255, 255, 0.4);
+  --card-dot-color: rgba(45, 212, 191, 0.7);
+  --suit-red: #fca5a5;
+  --suit-black: #ccfbf1;
+  --card-selected-border: #2dd4bf;
+  --card-selected-glow: rgba(45, 212, 191, 0.3);
+  --card-hover-shadow: rgba(0, 0, 0, 0.4);
+}
+
+/* Ember */
+.card-theme-ember {
+  --card-face-bg: #fffbf5;
+  --card-face-border: #f59e0b;
+  --card-back-gradient: linear-gradient(135deg, #ea580c, #dc2626);
+  --card-back-border: #c2410c;
+  --card-back-pattern: url("data:image/svg+xml,%3Csvg width='30' height='30' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='15' cy='15' r='1.5' fill='rgba(255,255,255,0.15)'/%3E%3Ccircle cx='0' cy='0' r='1' fill='rgba(255,200,50,0.12)'/%3E%3Ccircle cx='30' cy='30' r='1' fill='rgba(255,200,50,0.12)'/%3E%3C/svg%3E");
+  --card-back-color: rgba(255, 255, 255, 0.55);
+  --card-dot-color: rgba(255, 255, 255, 0.85);
+  --suit-red: #dc2626;
+  --suit-black: #292524;
+  --card-selected-border: #ea580c;
+  --card-selected-glow: rgba(234, 88, 12, 0.3);
+  --card-hover-shadow: rgba(234, 88, 12, 0.12);
+}
+
+:where(.dark, .dark *) .card-theme-ember {
+  --card-face-bg: #2a1a10;
+  --card-face-border: #d97706;
+  --card-back-gradient: linear-gradient(135deg, #9a3412, #991b1b);
+  --card-back-border: #7c2d12;
+  --card-back-pattern: url("data:image/svg+xml,%3Csvg width='30' height='30' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='15' cy='15' r='1.5' fill='rgba(255,200,50,0.12)'/%3E%3Ccircle cx='0' cy='0' r='1' fill='rgba(255,150,30,0.08)'/%3E%3Ccircle cx='30' cy='30' r='1' fill='rgba(255,150,30,0.08)'/%3E%3C/svg%3E");
+  --card-back-color: rgba(255, 200, 100, 0.4);
+  --card-dot-color: rgba(251, 191, 36, 0.7);
+  --suit-red: #fca5a5;
+  --suit-black: #e7e5e4;
+  --card-selected-border: #f59e0b;
+  --card-selected-glow: rgba(245, 158, 11, 0.3);
+  --card-hover-shadow: rgba(0, 0, 0, 0.4);
+}
+
+/* Nightfall */
+.card-theme-nightfall {
+  --card-face-bg: #faf5ff;
+  --card-face-border: #c4b5fd;
+  --card-back-gradient: linear-gradient(135deg, #4c1d95, #312e81);
+  --card-back-border: #3730a3;
+  --card-back-pattern: url("data:image/svg+xml,%3Csvg width='40' height='40' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='10' cy='8' r='1' fill='rgba(255,255,255,0.3)'/%3E%3Ccircle cx='30' cy='25' r='0.7' fill='rgba(255,255,255,0.2)'/%3E%3Ccircle cx='5' cy='35' r='0.5' fill='rgba(255,255,255,0.15)'/%3E%3Ccircle cx='25' cy='5' r='0.8' fill='rgba(255,255,255,0.25)'/%3E%3Ccircle cx='38' cy='38' r='0.6' fill='rgba(255,255,255,0.18)'/%3E%3C/svg%3E");
+  --card-back-color: rgba(255, 255, 255, 0.5);
+  --card-dot-color: rgba(196, 181, 253, 0.85);
+  --suit-red: #9f1239;
+  --suit-black: #312e81;
+  --card-selected-border: #7c3aed;
+  --card-selected-glow: rgba(124, 58, 237, 0.3);
+  --card-hover-shadow: rgba(76, 29, 149, 0.12);
+}
+
+:where(.dark, .dark *) .card-theme-nightfall {
+  --card-face-bg: #1a1333;
+  --card-face-border: #7c3aed;
+  --card-back-gradient: linear-gradient(135deg, #2e1065, #1e1b4b);
+  --card-back-border: #312e81;
+  --card-back-pattern: url("data:image/svg+xml,%3Csvg width='40' height='40' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='10' cy='8' r='1.2' fill='rgba(196,181,253,0.35)'/%3E%3Ccircle cx='30' cy='25' r='0.8' fill='rgba(196,181,253,0.25)'/%3E%3Ccircle cx='5' cy='35' r='0.6' fill='rgba(196,181,253,0.2)'/%3E%3Ccircle cx='25' cy='5' r='1' fill='rgba(196,181,253,0.3)'/%3E%3Ccircle cx='38' cy='38' r='0.7' fill='rgba(196,181,253,0.22)'/%3E%3C/svg%3E");
+  --card-back-color: rgba(196, 181, 253, 0.4);
+  --card-dot-color: rgba(196, 181, 253, 0.7);
+  --suit-red: #fda4af;
+  --suit-black: #ddd6fe;
+  --card-selected-border: #a78bfa;
+  --card-selected-glow: rgba(167, 139, 250, 0.3);
+  --card-hover-shadow: rgba(0, 0, 0, 0.4);
+}
+
+/* Cyber */
+.card-theme-cyber {
+  --card-face-bg: #f8fafc;
+  --card-face-border: #06b6d4;
+  --card-back-gradient: linear-gradient(135deg, #1e293b, #0f172a);
+  --card-back-border: #06b6d4;
+  --card-back-pattern: url("data:image/svg+xml,%3Csvg width='30' height='30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 15h30M15 0v30' stroke='rgba(6,182,212,0.2)' stroke-width='0.5' fill='none'/%3E%3Crect x='13' y='13' width='4' height='4' stroke='rgba(6,182,212,0.15)' stroke-width='0.5' fill='none' rx='0.5'/%3E%3C/svg%3E");
+  --card-back-color: rgba(6, 182, 212, 0.6);
+  --card-dot-color: rgba(6, 182, 212, 0.85);
+  --suit-red: #e11d48;
+  --suit-black: #06b6d4;
+  --card-selected-border: #06b6d4;
+  --card-selected-glow: rgba(6, 182, 212, 0.35);
+  --card-hover-shadow: rgba(6, 182, 212, 0.12);
+}
+
+:where(.dark, .dark *) .card-theme-cyber {
+  --card-face-bg: #0a0f1a;
+  --card-face-border: #0e7490;
+  --card-back-gradient: linear-gradient(135deg, #020617, #0f172a);
+  --card-back-border: #06b6d4;
+  --card-back-pattern: url("data:image/svg+xml,%3Csvg width='30' height='30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 15h30M15 0v30' stroke='rgba(6,182,212,0.15)' stroke-width='0.5' fill='none'/%3E%3Crect x='13' y='13' width='4' height='4' stroke='rgba(6,182,212,0.12)' stroke-width='0.5' fill='none' rx='0.5'/%3E%3C/svg%3E");
+  --card-back-color: rgba(6, 182, 212, 0.5);
+  --card-dot-color: rgba(6, 182, 212, 0.7);
+  --suit-red: #fb7185;
+  --suit-black: #22d3ee;
+  --card-selected-border: #22d3ee;
+  --card-selected-glow: rgba(34, 211, 238, 0.3);
+  --card-hover-shadow: rgba(6, 182, 212, 0.2);
+}

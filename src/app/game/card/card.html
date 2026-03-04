@@ -1,5 +1,5 @@
 <button
-  class="card"
+  [class]="'card ' + themeClass()"
   [class.face-up]="faceUp()"
   [class.face-down]="!faceUp()"
   [class.selected]="selected()"

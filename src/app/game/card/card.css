@@ -1,8 +1,10 @@
+/* ===== Base card styles (theme-agnostic) ===== */
+
 .card {
   width: var(--card-width, 104px);
   height: var(--card-height, 156px);
   border-radius: 10px;
-  border: 2px solid #d1d5db;
+  border: 2px solid var(--card-face-border);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -18,18 +20,10 @@
   -webkit-user-select: none;
 }
 
-:host-context(.dark) .card {
-  border-color: #4b5563;
-}
-
 @media (hover: hover) {
   .card:hover:not(:disabled) {
     transform: translateY(-4px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  }
-
-  :host-context(.dark) .card:hover:not(:disabled) {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 4px 12px var(--card-hover-shadow);
   }
 }
 
@@ -39,11 +33,7 @@
 }
 
 .card.face-up {
-  background: white;
-}
-
-:host-context(.dark) .card.face-up {
-  background: #1f2937;
+  background: var(--card-face-bg);
 }
 
 .card.revealed {
@@ -51,13 +41,20 @@
 }
 
 .card.face-down {
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-  border-color: #1e40af;
+  background: var(--card-back-gradient);
+  background-size: cover;
+  border-color: var(--card-back-border);
+  position: relative;
 }
 
-:host-context(.dark) .card.face-down {
-  background: linear-gradient(135deg, #2563eb, #1e3a8a);
-  border-color: #1e3a8a;
+.card.face-down::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  background-image: var(--card-back-pattern);
+  background-repeat: repeat;
+  pointer-events: none;
 }
 
 @keyframes cardFlip {
@@ -76,14 +73,9 @@
 }
 
 .card.selected {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+  border-color: var(--card-selected-border);
+  box-shadow: 0 0 0 3px var(--card-selected-glow);
   transform: translateY(-8px);
-}
-
-:host-context(.dark) .card.selected {
-  border-color: #60a5fa;
-  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.3);
 }
 
 .own-dot {
@@ -93,7 +85,7 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.85);
+  background: var(--card-dot-color);
   pointer-events: none;
 }
 
@@ -111,24 +103,17 @@
 
 .card-back {
   font-size: 3.25rem;
-  color: white;
-  opacity: 0.6;
+  color: var(--card-back-color);
+  position: relative;
+  z-index: 1;
 }
 
 .suit-red {
-  color: #dc2626;
+  color: var(--suit-red);
 }
 
 .suit-black {
-  color: #1f2937;
-}
-
-:host-context(.dark) .suit-red {
-  color: #f87171;
-}
-
-:host-context(.dark) .suit-black {
-  color: #e5e7eb;
+  color: var(--suit-black);
 }
 
 @media (max-width: 767px) {
