@@ -35,12 +35,12 @@
 
 .turn-banner.my-turn {
   color: #1d4ed8;
-  background: #dbeafe;
+  background: #dce8f8;
 }
 
 .turn-banner.waiting-turn {
   color: #64748b;
-  background: #f1f5f9;
+  background: #e8e3db;
 }
 
 :host-context(.dark) .turn-banner.my-turn {
@@ -73,8 +73,8 @@
 
 /* Hand area base (Basic) */
 .hand-area {
-  background: linear-gradient(to bottom, #f8fafc, #f1f5f9);
-  border-color: #e2e8f0;
+  background: linear-gradient(to bottom, #f0ece5, #e8e3db);
+  border-color: #d5cfc6;
 }
 
 :host-context(.dark) .hand-area {

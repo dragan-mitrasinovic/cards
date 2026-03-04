@@ -19,7 +19,7 @@
 }
 
 .picker-modal {
-  background: white;
+  background: #f7f4f0;
   border-radius: 16px;
   padding: 24px;
   max-width: 640px;
@@ -70,7 +70,7 @@
 
 .picker-close:hover {
   color: #374151;
-  background: #f3f4f6;
+  background: #e8e4dc;
 }
 
 :host-context(.dark) .picker-close:hover {
@@ -97,22 +97,22 @@
   align-items: center;
   gap: 8px;
   padding: 12px 8px;
-  border: 2px solid #e5e7eb;
+  border: 2px solid #d5cfc6;
   border-radius: 12px;
-  background: #fafafa;
+  background: #edeae4;
   cursor: pointer;
   transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
 }
 
 .picker-option:hover {
-  border-color: #d1d5db;
-  background: #f3f4f6;
+  border-color: #c8c3ba;
+  background: #e5e1d9;
 }
 
 .picker-option.active {
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
-  background: #eff6ff;
+  background: #e3ecf8;
 }
 
 :host-context(.dark) .picker-option {

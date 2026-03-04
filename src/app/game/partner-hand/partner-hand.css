@@ -8,8 +8,8 @@
   flex-direction: column;
   align-items: center;
   padding: 8px 16px 16px;
-  background: linear-gradient(to bottom, #f8fafc, #f1f5f9);
-  border-bottom: 1px solid #e2e8f0;
+  background: linear-gradient(to bottom, #f0ece5, #e8e3db);
+  border-bottom: 1px solid #d5cfc6;
 }
 
 :host-context(.dark) .partner-hand-area {

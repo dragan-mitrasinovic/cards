@@ -4,7 +4,8 @@
 
 @layer base {
   body {
-    @apply bg-white text-gray-900 antialiased;
+    background-color: #eae6df;
+    @apply text-stone-800 antialiased;
     @apply dark:bg-gray-950 dark:text-gray-100;
     font-family: system-ui, -apple-system, sans-serif;
   }

@@ -19,7 +19,7 @@
   width: var(--card-width, 104px);
   height: var(--card-height, 156px);
   border-radius: 10px;
-  border: 2px dashed #d1d5db;
+  border: 2px dashed #c8c3ba;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -36,7 +36,7 @@
 }
 
 .slot-empty {
-  background: #f9fafb;
+  background: #f0ece6;
 }
 
 :host-context(.dark) .slot-empty {

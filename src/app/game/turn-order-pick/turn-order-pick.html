@@ -4,11 +4,11 @@
     <h2 class="text-xl font-semibold">Turn Order Picks</h2>
     <div class="flex gap-8">
       <div class="text-center">
-        <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">{{ playerName() }} (You)</p>
+        <p class="text-sm text-stone-500 dark:text-gray-400 mb-1">{{ playerName() }} (You)</p>
         <p class="font-semibold text-lg">{{ preferenceLabel(playerNumber() === 1 ? r.pick1 : r.pick2) }}</p>
       </div>
       <div class="text-center">
-        <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">{{ partnerName() }}</p>
+        <p class="text-sm text-stone-500 dark:text-gray-400 mb-1">{{ partnerName() }}</p>
         <p class="font-semibold text-lg">{{ preferenceLabel(playerNumber() === 1 ? r.pick2 : r.pick1) }}</p>
       </div>
     </div>
@@ -27,33 +27,33 @@
   } @else {
     <!-- Pick UI -->
     <h2 class="text-xl font-semibold">Who goes first?</h2>
-    <p class="text-sm text-gray-500 dark:text-gray-400">Choose your turn order preference</p>
+    <p class="text-sm text-stone-500 dark:text-gray-400">Choose your turn order preference</p>
 
     @if (!picked()) {
       <div class="flex flex-col sm:flex-row gap-3">
         <button
           (click)="pick('first')"
-          class="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-300 dark:hover:bg-gray-600 min-w-[160px]"
+          class="px-6 py-3 bg-stone-200 dark:bg-gray-700 text-stone-700 dark:text-gray-300 rounded-lg font-medium hover:bg-stone-300 dark:hover:bg-gray-600 min-w-[160px]"
         >
           I'll go first
         </button>
         <button
           (click)="pick('neutral')"
-          class="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-300 dark:hover:bg-gray-600 min-w-[160px]"
+          class="px-6 py-3 bg-stone-200 dark:bg-gray-700 text-stone-700 dark:text-gray-300 rounded-lg font-medium hover:bg-stone-300 dark:hover:bg-gray-600 min-w-[160px]"
         >
           No preference
         </button>
         <button
           (click)="pick('no_first')"
-          class="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-300 dark:hover:bg-gray-600 min-w-[160px]"
+          class="px-6 py-3 bg-stone-200 dark:bg-gray-700 text-stone-700 dark:text-gray-300 rounded-lg font-medium hover:bg-stone-300 dark:hover:bg-gray-600 min-w-[160px]"
         >
           I'll go second
         </button>
       </div>
     } @else {
       <div class="text-center">
-        <p class="text-gray-600 dark:text-gray-400 mb-2">You chose: <span class="font-semibold">{{ preferenceLabel(picked()!) }}</span></p>
-        <p class="text-sm text-gray-400 dark:text-gray-500 animate-pulse">Waiting for {{ partnerName() }}…</p>
+        <p class="text-stone-600 dark:text-gray-400 mb-2">You chose: <span class="font-semibold">{{ preferenceLabel(picked()!) }}</span></p>
+        <p class="text-sm text-stone-400 dark:text-gray-500 animate-pulse">Waiting for {{ partnerName() }}…</p>
       </div>
     }
   }

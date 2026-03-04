@@ -18,7 +18,7 @@
       >
         {{ result.win ? '🎉 You Win!' : '😞 You Lose' }}
       </h2>
-      <p class="text-gray-600 dark:text-gray-400">
+      <p class="text-stone-600 dark:text-gray-400">
         {{ result.win ? 'All cards are in the correct order!' : 'The cards are not in the correct order.' }}
       </p>
 
@@ -31,11 +31,11 @@
             Play Again
           </button>
         } @else {
-          <span class="text-sm text-gray-500 dark:text-gray-400">Waiting for {{ partnerName() }}…</span>
+          <span class="text-sm text-stone-500 dark:text-gray-400">Waiting for {{ partnerName() }}…</span>
         }
         <button
           (click)="leaveGame.emit()"
-          class="px-6 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md font-medium hover:bg-gray-300 dark:hover:bg-gray-600"
+          class="px-6 py-2 bg-stone-200 dark:bg-gray-700 text-stone-700 dark:text-gray-300 rounded-md font-medium hover:bg-stone-300 dark:hover:bg-gray-600"
         >
           Leave
         </button>

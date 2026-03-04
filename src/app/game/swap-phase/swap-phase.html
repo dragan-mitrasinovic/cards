@@ -68,7 +68,7 @@
       </span>
       <button
         (click)="skipSwap.emit()"
-        class="px-4 py-2 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md font-medium hover:bg-gray-300 dark:hover:bg-gray-600"
+        class="px-4 py-2 text-sm bg-stone-200 dark:bg-gray-700 text-stone-700 dark:text-gray-300 rounded-md font-medium hover:bg-stone-300 dark:hover:bg-gray-600"
       >
         Skip Swap
       </button>
@@ -76,7 +76,7 @@
   } @else if (!isMyTurn() && !swapPending()) {
     <div class="flex justify-center items-center gap-3 mt-4">
       @if (swapAccepted()[playerNumber() - 1]) {
-        <span class="text-sm text-gray-400 dark:text-gray-500">Your swap was already used</span>
+        <span class="text-sm text-stone-400 dark:text-gray-500">Your swap was already used</span>
       }
     </div>
   }
