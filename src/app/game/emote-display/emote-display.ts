@@ -24,7 +24,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
     }
 
     :host-context([data-position="bottom"]) {
-      bottom: 11rem;
+      bottom: 9rem;
     }
 
     .emote-toast {
@@ -66,7 +66,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
   host: {
     '[attr.data-position]': 'position()',
     '[style.top]': 'position() === "top" ? "5rem" : null',
-    '[style.bottom]': 'position() === "bottom" ? "11rem" : null',
+    '[style.bottom]': 'position() === "bottom" ? "9rem" : null',
   },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

@@ -27,6 +27,8 @@
   transition: border-color 0.15s, background-color 0.15s, box-shadow 0.15s;
   cursor: default;
   scroll-snap-align: center;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 :host-context(.dark) .slot {
@@ -169,11 +171,28 @@
 }
 
 
-/* Mobile: smaller cards */
+/* Mobile: smaller cards + two-row layout */
 @media (max-width: 767px) {
   :host {
     --card-width: 73px;
     --card-height: 109px;
     --board-gap: 4px;
+  }
+
+  .board-container {
+    overflow-x: auto;
+  }
+
+  .board {
+    flex-wrap: wrap;
+    min-width: 0;
+    max-width: calc(8 * (var(--card-width) + var(--board-gap)));
+    margin: 0 auto;
+    justify-content: center;
+    scroll-snap-type: none;
+  }
+
+  .slot {
+    scroll-snap-align: none;
   }
 }

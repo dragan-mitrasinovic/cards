@@ -48,7 +48,7 @@
 
   <!-- Action area below board (matching placement phase layout) -->
   @if (swapPending() && swapSuggester() !== playerNumber()) {
-    <div class="flex items-center justify-center gap-4 mt-3 px-4 py-2 bg-purple-50 dark:bg-purple-900/30 rounded-lg border border-purple-200 dark:border-purple-800">
+    <div class="flex flex-wrap items-center justify-center gap-4 mt-3 px-4 py-2 bg-purple-50 dark:bg-purple-900/30 rounded-lg border border-purple-200 dark:border-purple-800">
       <span class="text-purple-700 dark:text-purple-400 text-sm font-medium">{{ partnerName() }} wants to swap the highlighted cards</span>
       <button (click)="respondSwap.emit(true)" class="px-3 py-1 text-sm bg-green-500 text-white rounded-md font-medium hover:bg-green-600">
         Accept

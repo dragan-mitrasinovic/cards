@@ -12,6 +12,7 @@
         cdkDrag
         [cdkDragData]="$index"
         [cdkDragDisabled]="handUsed()[$index] || !dragEnabled() || !isMyTurn()"
+        [cdkDragStartDelay]="{ touch: 200, mouse: 0 }"
         (cdkDragStarted)="onDragStarted($event)"
       >
         <app-card

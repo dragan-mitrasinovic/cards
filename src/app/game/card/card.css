@@ -14,19 +14,23 @@
   position: relative;
   flex-shrink: 0;
   perspective: 600px;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 :host-context(.dark) .card {
   border-color: #4b5563;
 }
 
-.card:hover:not(:disabled) {
-  transform: translateY(-4px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
+@media (hover: hover) {
+  .card:hover:not(:disabled) {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
 
-:host-context(.dark) .card:hover:not(:disabled) {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  :host-context(.dark) .card:hover:not(:disabled) {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  }
 }
 
 .card:disabled {
