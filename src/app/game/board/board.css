@@ -186,7 +186,7 @@
   .board {
     flex-wrap: wrap;
     min-width: 0;
-    max-width: calc(8 * (var(--card-width) + var(--board-gap)));
+    width: calc(8 * (var(--card-width) + var(--board-gap)));
     margin: 0 auto;
     justify-content: center;
     scroll-snap-type: none;
