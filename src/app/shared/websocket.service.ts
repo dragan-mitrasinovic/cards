@@ -7,6 +7,7 @@ export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected';
 const INITIAL_RECONNECT_DELAY = 500;
 const MAX_RECONNECT_DELAY = 5000;
 const HEARTBEAT_INTERVAL = 30_000;
+const RECONNECT_STORAGE_KEY = 'reconnect-credentials';
 
 @Injectable({ providedIn: 'root' })
 export class WebSocketService implements OnDestroy {
@@ -52,6 +53,27 @@ export class WebSocketService implements OnDestroy {
   setReconnectCredentials(name: string, roomCode: string): void {
     this.reconnectName = name;
     this.reconnectRoomCode = roomCode;
+    sessionStorage.setItem(RECONNECT_STORAGE_KEY, JSON.stringify({ playerName: name, roomCode }));
+  }
+
+  /** Clear reconnect credentials from both memory and sessionStorage. */
+  clearReconnectCredentials(): void {
+    this.reconnectName = null;
+    this.reconnectRoomCode = null;
+    sessionStorage.removeItem(RECONNECT_STORAGE_KEY);
+  }
+
+  /** Get stored credentials from sessionStorage (for page reload recovery). */
+  getStoredCredentials(): { playerName: string; roomCode: string } | null {
+    const stored = sessionStorage.getItem(RECONNECT_STORAGE_KEY);
+    if (!stored) return null;
+
+    try {
+      return JSON.parse(stored);
+    } catch {
+      sessionStorage.removeItem(RECONNECT_STORAGE_KEY);
+      return null;
+    }
   }
 
   send(message: ClientMessage): void {
@@ -77,6 +99,15 @@ export class WebSocketService implements OnDestroy {
       this.status.set('connected');
       this.reconnectDelay = INITIAL_RECONNECT_DELAY;
       this.startHeartbeat();
+
+      // Load credentials from sessionStorage if not in memory (page reload case)
+      if (!this.reconnectName || !this.reconnectRoomCode) {
+        const stored = this.getStoredCredentials();
+        if (stored) {
+          this.reconnectName = stored.playerName;
+          this.reconnectRoomCode = stored.roomCode;
+        }
+      }
 
       // If we have stored credentials, send a reconnect message
       if (this.reconnectName && this.reconnectRoomCode) {

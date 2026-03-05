@@ -51,6 +51,7 @@ describe('WebSocketService', () => {
   afterEach(() => {
     service.ngOnDestroy();
     globalThis.WebSocket = originalWebSocket;
+    sessionStorage.clear();
   });
 
   it('should start disconnected', () => {
@@ -128,5 +129,55 @@ describe('WebSocketService', () => {
 
     await new Promise((r) => setTimeout(r, 600));
     expect(MockWebSocket.instances.length).toBe(1);
+  });
+
+  it('should save credentials to sessionStorage on setReconnectCredentials', () => {
+    service.setReconnectCredentials('Alice', 'ABCD');
+    const stored = sessionStorage.getItem('reconnect-credentials');
+    expect(stored).toBeTruthy();
+    expect(JSON.parse(stored!)).toEqual({ playerName: 'Alice', roomCode: 'ABCD' });
+  });
+
+  it('should return stored credentials from getStoredCredentials', () => {
+    sessionStorage.setItem('reconnect-credentials', JSON.stringify({ playerName: 'Bob', roomCode: 'XY12' }));
+    const result = service.getStoredCredentials();
+    expect(result).toEqual({ playerName: 'Bob', roomCode: 'XY12' });
+  });
+
+  it('should return null from getStoredCredentials when nothing stored', () => {
+    expect(service.getStoredCredentials()).toBeNull();
+  });
+
+  it('should clear sessionStorage on clearReconnectCredentials', () => {
+    service.setReconnectCredentials('Alice', 'ABCD');
+    service.clearReconnectCredentials();
+    expect(sessionStorage.getItem('reconnect-credentials')).toBeNull();
+    expect(service.getStoredCredentials()).toBeNull();
+  });
+
+  it('should NOT clear sessionStorage on disconnect', () => {
+    service.setReconnectCredentials('Alice', 'ABCD');
+    service.connect('/ws');
+    MockWebSocket.instances[0].simulateOpen();
+    service.disconnect();
+    expect(sessionStorage.getItem('reconnect-credentials')).toBeTruthy();
+  });
+
+  it('should load credentials from sessionStorage on open when not in memory', () => {
+    sessionStorage.setItem('reconnect-credentials', JSON.stringify({ playerName: 'Alice', roomCode: 'ABCD' }));
+    service.connect('/ws');
+    MockWebSocket.instances[0].simulateOpen();
+    const sent = MockWebSocket.instances[0].sent;
+    expect(sent.length).toBe(1);
+    expect(JSON.parse(sent[0])).toEqual({ type: 'reconnect', name: 'Alice', roomCode: 'ABCD' });
+  });
+
+  it('should send reconnect with in-memory credentials when available', () => {
+    service.setReconnectCredentials('Alice', 'ABCD');
+    service.connect('/ws');
+    MockWebSocket.instances[0].simulateOpen();
+    const sent = MockWebSocket.instances[0].sent;
+    expect(sent.length).toBe(1);
+    expect(JSON.parse(sent[0])).toEqual({ type: 'reconnect', name: 'Alice', roomCode: 'ABCD' });
   });
 });

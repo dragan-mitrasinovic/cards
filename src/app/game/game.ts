@@ -44,6 +44,7 @@ export class GameComponent implements OnInit, OnDestroy {
   readonly needsJoin = signal(false);
   readonly joinError = signal('');
   readonly partnerDisconnected = signal(false);
+  readonly attemptingReconnect = signal(false);
   readonly selectedCardIndex = signal(-1);
   readonly selectedSwapSlots = signal<number[]>([]);
   readonly placementSwapMode = signal(false);
@@ -76,10 +77,18 @@ export class GameComponent implements OnInit, OnDestroy {
   });
 
   ngOnInit(): void {
-    // If arriving via shareable link without an active room, prompt to join
-    const currentRoom = this.gameState.roomCode();
-    if (this.ws.status() === 'disconnected' || !currentRoom || currentRoom !== this.roomId()) {
-      this.needsJoin.set(true);
+    // Check sessionStorage for stored reconnection credentials (page reload scenario)
+    const stored = this.ws.getStoredCredentials();
+    if (stored && stored.roomCode === this.roomId()) {
+      this.attemptingReconnect.set(true);
+      this.gameState.roomCode.set(stored.roomCode);
+      this.ws.connect('/ws');
+    } else {
+      // No stored credentials or room code mismatch — check if we need to join
+      const currentRoom = this.gameState.roomCode();
+      if (this.ws.status() === 'disconnected' || !currentRoom || currentRoom !== this.roomId()) {
+        this.needsJoin.set(true);
+      }
     }
 
     this.messagesSub = this.ws.messages$.subscribe((msg: ServerMessage) => {
@@ -89,6 +98,7 @@ export class GameComponent implements OnInit, OnDestroy {
           this.gameState.playerNumber.set(msg.playerNumber);
           this.gameState.partnerName.set(msg.partnerName);
           this.needsJoin.set(false);
+          this.attemptingReconnect.set(false);
           this.partnerDisconnected.set(false);
           this.partnerLeftMessage.set('');
           // Store credentials for auto-reconnection
@@ -275,7 +285,13 @@ export class GameComponent implements OnInit, OnDestroy {
           break;
         }
         case 'error': {
-          if (this.needsJoin()) {
+          if (this.attemptingReconnect()) {
+            // Auto-reconnect failed — fall back to join form
+            this.attemptingReconnect.set(false);
+            this.ws.clearReconnectCredentials();
+            this.needsJoin.set(true);
+            this.joinError.set(msg.message);
+          } else if (this.needsJoin()) {
             this.joinError.set(msg.message);
           }
           if (this.placementSwapMode()) {
@@ -440,6 +456,7 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   leaveGame(): void {
+    this.ws.clearReconnectCredentials();
     this.ws.disconnect();
     this.gameState.reset();
     this.router.navigate(['/']);
@@ -449,6 +466,7 @@ export class GameComponent implements OnInit, OnDestroy {
     if (this.gameState.roomCode()) {
       this.ws.send({ type: 'exit_game' });
     }
+    this.ws.clearReconnectCredentials();
     this.ws.disconnect();
     this.gameState.reset();
     this.router.navigate(['/']);

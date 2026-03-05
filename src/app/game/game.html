@@ -35,7 +35,18 @@
     </div>
   </header>
 
-  @if (needsJoin()) {
+  @if (attemptingReconnect()) {
+    <!-- Auto-reconnecting after page reload -->
+    <div class="fixed inset-0 flex justify-center items-center">
+      <div class="w-full max-w-sm border border-stone-200 dark:border-gray-700 rounded-lg px-6 sm:px-14 py-8 sm:py-14 text-center bg-stone-50 dark:bg-transparent shadow-sm dark:shadow-none">
+        <div class="inline-flex items-center justify-center w-12 h-12 mb-4 rounded-full bg-blue-50 dark:bg-blue-900/30">
+          <span class="block w-5 h-5 border-3 border-blue-500 border-t-transparent rounded-full animate-spin"></span>
+        </div>
+        <h2 class="text-xl font-semibold mb-2">Reconnecting…</h2>
+        <p class="text-stone-500 dark:text-gray-400 text-sm">Restoring your game session</p>
+      </div>
+    </div>
+  } @else if (needsJoin()) {
     <!-- Shareable link join form -->
     <div class="fixed inset-0 flex justify-center items-center">
       <div class="w-full max-w-sm border border-stone-200 dark:border-gray-700 rounded-lg px-6 sm:px-14 py-8 sm:py-14 bg-stone-50 dark:bg-transparent shadow-sm dark:shadow-none">
