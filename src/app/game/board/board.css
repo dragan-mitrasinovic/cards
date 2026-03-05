@@ -174,8 +174,8 @@
 /* Mobile: smaller cards + two-row layout */
 @media (max-width: 767px) {
   :host {
-    --card-width: 73px;
-    --card-height: 109px;
+    --card-width: 66px;
+    --card-height: 98px;
     --board-gap: 4px;
   }
 

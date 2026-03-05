@@ -160,6 +160,12 @@
 .game-theme-cyber .hand-label { color: #06b6d4; }
 :host-context(.dark) .game-theme-cyber .hand-label { color: #155e75; }
 
+@media (max-width: 767px) {
+  .turn-banner {
+    margin-top: 8px;
+  }
+}
+
 /* Royal turn banner */
 .game-theme-royal .turn-banner.my-turn {
   color: #92400e;

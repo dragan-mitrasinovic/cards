@@ -118,14 +118,14 @@
 
 @media (max-width: 767px) {
   .card-value {
-    font-size: 1.5rem;
+    font-size: 1.35rem;
   }
 
   .card-suit {
-    font-size: 1.625rem;
+    font-size: 1.45rem;
   }
 
   .card-back {
-    font-size: 2.25rem;
+    font-size: 2rem;
   }
 }

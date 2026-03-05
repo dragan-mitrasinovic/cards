@@ -171,7 +171,7 @@
 
           <!-- Action buttons area -->
           @if (placementSwapMode()) {
-            <div class="flex justify-center items-center gap-3 mt-4">
+            <div class="flex justify-center items-center gap-3 mt-4 mb-2">
               <span class="text-purple-700 dark:text-purple-400 text-sm font-medium">
                 @if (selectedSwapSlots().length === 1) {
                   Selected slot {{ selectedSwapSlots()[0] + 1 }} — click another card
@@ -187,7 +187,7 @@
               </button>
             </div>
           } @else if (!gameState.swapPending()) {
-            <div class="flex justify-center items-center gap-3 mt-4">
+            <div class="flex justify-center items-center gap-3 mt-4 mb-2">
               <button
                 (click)="pass()"
                 [disabled]="!gameState.isMyTurn() || gameState.passUsed()[gameState.playerNumber() - 1]"

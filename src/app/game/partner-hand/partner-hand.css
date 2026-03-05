@@ -55,8 +55,8 @@
 
 @media (max-width: 767px) {
   :host {
-    --partner-card-width: 40px;
-    --partner-card-height: 60px;
+    --partner-card-width: 36px;
+    --partner-card-height: 54px;
   }
 
   .partner-hand-area {
