@@ -104,6 +104,7 @@ func main() {
 	}
 
 	rooms := NewRoomManager()
+	rooms.StartEmptyRoomCleanup(5 * time.Minute)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/ws", handleWebSocket(rooms))

@@ -320,6 +320,38 @@ func (rm *RoomManager) RemoveRoom(code string) {
 	slog.Info("room removed", "code", code)
 }
 
+// StartEmptyRoomCleanup launches a background goroutine that periodically
+// removes rooms with no connected or disconnected players. This is a safety
+// net in case event-driven cleanup misses a room due to a bug or edge case.
+func (rm *RoomManager) StartEmptyRoomCleanup(interval time.Duration) {
+	go func() {
+		ticker := time.NewTicker(interval)
+		defer ticker.Stop()
+
+		for range ticker.C {
+			rm.cleanupEmptyRooms()
+		}
+	}()
+}
+
+func (rm *RoomManager) cleanupEmptyRooms() {
+	rm.mu.RLock()
+	var stale []string
+
+	for code, room := range rm.rooms {
+		if room.IsEmpty() {
+			stale = append(stale, code)
+		}
+	}
+
+	rm.mu.RUnlock()
+
+	for _, code := range stale {
+		rm.RemoveRoom(code)
+		slog.Info("empty room cleaned up", "code", code)
+	}
+}
+
 func generateRoomCode() (string, error) {
 	code := make([]byte, roomCodeLength)
 
