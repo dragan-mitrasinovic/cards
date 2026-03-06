@@ -163,14 +163,14 @@ export class GameComponent implements OnInit, OnDestroy {
           const board = [...this.gameState.board()];
           board[msg.slotIndex] = { occupied: true, byPlayer: msg.byPlayer };
           this.gameState.board.set(board);
-          this.gameState.isMyTurn.set(msg.byPlayer !== this.gameState.playerNumber());
+          this.gameState.isMyTurn.set(false);
           break;
         }
         case 'player_passed': {
           const passUsed: [boolean, boolean] = [...this.gameState.passUsed()];
           passUsed[msg.byPlayer - 1] = true;
           this.gameState.passUsed.set(passUsed);
-          this.gameState.isMyTurn.set(msg.byPlayer !== this.gameState.playerNumber());
+          this.gameState.isMyTurn.set(false);
           break;
         }
         case 'peek_result': {

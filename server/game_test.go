@@ -440,6 +440,52 @@ func TestUsePass(t *testing.T) {
 	})
 }
 
+func TestAutoSkipEmptyHand(t *testing.T) {
+	t.Run("skips player with no cards remaining", func(t *testing.T) {
+		g := newTestGame()
+
+		// Player 2 uses pass, then both alternate placing cards.
+		// After player 1 places all 7, it should auto-skip back to player 2.
+		g.PlaceCard(1, 0, 0) // P1: 1, turn → P2
+		g.UsePass(2)         // P2: 0, turn → P1
+		g.PlaceCard(1, 1, 1) // P1: 2, turn → P2
+		g.PlaceCard(2, 0, 2) // P2: 1, turn → P1
+		g.PlaceCard(1, 2, 3) // P1: 3, turn → P2
+		g.PlaceCard(2, 1, 4) // P2: 2, turn → P1
+		g.PlaceCard(1, 3, 5) // P1: 4, turn → P2
+		g.PlaceCard(2, 2, 6) // P2: 3, turn → P1
+		g.PlaceCard(1, 4, 7) // P1: 5, turn → P2
+		g.PlaceCard(2, 3, 8) // P2: 4, turn → P1
+		g.PlaceCard(1, 5, 9) // P1: 6, turn → P2
+		g.PlaceCard(2, 4, 10) // P2: 5, turn → P1
+
+		// Player 1 places their 7th and final card
+		g.PlaceCard(1, 6, 11) // P1: 7 (done), turn should auto-skip P1 next time
+
+		if g.CurrentTurn != 2 {
+			t.Errorf("expected turn to be player 2, got %d", g.CurrentTurn)
+		}
+
+		// Player 2 places, turn would go to P1 but P1 has no cards → auto-skip to P2
+		g.PlaceCard(2, 5, 12) // P2: 6, turn → P1 → auto-skip → P2
+
+		if g.CurrentTurn != 2 {
+			t.Errorf("expected auto-skip back to player 2, got turn %d", g.CurrentTurn)
+		}
+
+		if g.Phase != PhasePlacement {
+			t.Errorf("expected still in placement phase, got %s", g.Phase)
+		}
+
+		// Player 2 places final card → all cards placed → transition to swap
+		g.PlaceCard(2, 6, 13) // P2: 7, total: 14
+
+		if g.Phase != PhaseSwap {
+			t.Errorf("expected swap phase, got %s", g.Phase)
+		}
+	})
+}
+
 func TestPeek(t *testing.T) {
 	t.Run("valid peek own card", func(t *testing.T) {
 		g := newTestGame()

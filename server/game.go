@@ -470,6 +470,8 @@ func (g *Game) CheckWin() bool {
 
 // advanceTurn switches the current turn to the other player,
 // and transitions to the swap phase if all cards are placed.
+// If the next player has already placed all their cards, their
+// turn is automatically skipped.
 func (g *Game) advanceTurn() {
 	if g.AllCardsPlaced() {
 		g.Phase = PhaseSwap
@@ -482,5 +484,15 @@ func (g *Game) advanceTurn() {
 		g.CurrentTurn = 2
 	} else {
 		g.CurrentTurn = 1
+	}
+
+	// Auto-skip if the next player has no cards remaining
+	idx := g.CurrentTurn - 1
+	if g.CardsPlaced[idx] == 7 {
+		if g.CurrentTurn == 1 {
+			g.CurrentTurn = 2
+		} else {
+			g.CurrentTurn = 1
+		}
 	}
 }
