@@ -221,15 +221,19 @@ func sendGameState(c *Client, room *Room, playerNum int) {
 		return
 	}
 
-	// Send hand with usage info for reconnection
 	hand := game.Hands[playerNum-1][:]
 	handUsed := game.HandUsed[playerNum-1][:]
-	c.SendMsg(GameStartMsg{
-		Type:        "game_start",
-		Hand:        hand,
-		FirstPlayer: game.FirstPlayer,
-		HandUsed:    handUsed,
-	})
+
+	// Send game_start only for placement and later phases.
+	// During turn_order_pick, the hand is sent via turn_order_prompt below instead.
+	if game.Phase != PhaseTurnOrderPick {
+		c.SendMsg(GameStartMsg{
+			Type:        "game_start",
+			Hand:        hand,
+			FirstPlayer: game.FirstPlayer,
+			HandUsed:    handUsed,
+		})
+	}
 
 	// Send board state — placed cards
 	for i := 0; i < BoardSize; i++ {

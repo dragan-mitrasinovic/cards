@@ -180,4 +180,49 @@ describe('WebSocketService', () => {
     expect(sent.length).toBe(1);
     expect(JSON.parse(sent[0])).toEqual({ type: 'reconnect', name: 'Alice', roomCode: 'ABCD' });
   });
+
+  it('should not reconnect from stale socket close after connect()', async () => {
+    service.connect('/ws');
+    const oldSocket = MockWebSocket.instances[0];
+    oldSocket.simulateOpen();
+
+    // Override close() to suppress synchronous onclose (simulating async browser behavior)
+    oldSocket.close = function () { this.readyState = WebSocket.CLOSED; };
+
+    // Calling connect() again closes old socket and creates a new one
+    service.connect('/ws');
+    const newSocket = MockWebSocket.instances[1];
+    newSocket.simulateOpen();
+
+    // Simulate the old socket's onclose firing asynchronously after the new socket is active.
+    // Without the stale-socket guard, this would trigger a spurious scheduleReconnect().
+    oldSocket.simulateClose();
+
+    await new Promise((r) => setTimeout(r, 600));
+    expect(MockWebSocket.instances.length).toBe(2);
+  });
+
+  it('should ignore messages from stale sockets', () => {
+    const received: unknown[] = [];
+    service.messages$.subscribe((msg) => received.push(msg));
+
+    service.connect('/ws');
+    const oldSocket = MockWebSocket.instances[0];
+    oldSocket.simulateOpen();
+
+    // Replace connection
+    oldSocket.close = function () { this.readyState = WebSocket.CLOSED; };
+    service.connect('/ws');
+    const newSocket = MockWebSocket.instances[1];
+    newSocket.simulateOpen();
+
+    // Message from old (stale) socket should be ignored
+    oldSocket.simulateMessage({ type: 'echo', payload: 'stale' });
+    expect(received.length).toBe(0);
+
+    // Message from current socket should be received
+    newSocket.simulateMessage({ type: 'echo', payload: 'fresh' });
+    expect(received.length).toBe(1);
+    expect(received[0]).toEqual({ type: 'echo', payload: 'fresh' });
+  });
 });

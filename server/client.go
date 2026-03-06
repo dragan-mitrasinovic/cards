@@ -44,6 +44,14 @@ func (c *Client) SendMsg(msg any) {
 		return
 	}
 
+	// Recover from sending on a closed channel. This can happen if cleanup()
+	// closes the channel while another goroutine holds a stale client pointer.
+	defer func() {
+		if r := recover(); r != nil {
+			slog.Warn("send on closed channel", "player", c.name)
+		}
+	}()
+
 	select {
 	case c.send <- data:
 	default:

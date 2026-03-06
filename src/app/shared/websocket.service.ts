@@ -93,9 +93,11 @@ export class WebSocketService implements OnDestroy {
     if (!this.url) return;
 
     this.status.set('connecting');
-    this.socket = new WebSocket(this.url);
+    const socket = new WebSocket(this.url);
+    this.socket = socket;
 
-    this.socket.onopen = () => {
+    socket.onopen = () => {
+      if (this.socket !== socket) return;
       this.status.set('connected');
       this.reconnectDelay = INITIAL_RECONNECT_DELAY;
       this.startHeartbeat();
@@ -117,7 +119,8 @@ export class WebSocketService implements OnDestroy {
       this.flushPending();
     };
 
-    this.socket.onmessage = (event: MessageEvent) => {
+    socket.onmessage = (event: MessageEvent) => {
+      if (this.socket !== socket) return;
       try {
         const message: ServerMessage = JSON.parse(event.data);
         this.messagesSubject.next(message);
@@ -126,7 +129,8 @@ export class WebSocketService implements OnDestroy {
       }
     };
 
-    this.socket.onclose = () => {
+    socket.onclose = () => {
+      if (this.socket !== socket) return;
       this.status.set('disconnected');
       this.stopHeartbeat();
       if (!this.intentionalClose) {
@@ -134,7 +138,8 @@ export class WebSocketService implements OnDestroy {
       }
     };
 
-    this.socket.onerror = (error) => {
+    socket.onerror = (error) => {
+      if (this.socket !== socket) return;
       console.error('WebSocket error:', error);
     };
   }

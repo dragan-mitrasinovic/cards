@@ -118,11 +118,14 @@ export class GameComponent implements OnInit, OnDestroy {
           break;
         }
         case 'turn_order_prompt': {
-          // If coming from game_over, this is a rematch
+          // If coming from game_over, this is a rematch — reset full game state
           if (this.gameState.phase() === 'game_over') {
             this.revealTimeouts.forEach(t => clearTimeout(t));
             this.revealTimeouts = [];
             this.gameState.resetForRematch();
+          } else {
+            // Clear any stale result from a previous session (GameStateService is a singleton)
+            this.gameState.turnOrderResult.set(null);
           }
           this.gameState.hand.set(msg.hand);
           this.gameState.phase.set('turn_order_pick');
