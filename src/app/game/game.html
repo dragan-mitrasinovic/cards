@@ -158,6 +158,7 @@
               [dragEnabled]="isDragEnabled()"
               [selectedSwapSlots]="gameState.swapPending() ? (gameState.swapSlots() ?? []) : selectedSwapSlots()"
               [swapHistory]="gameState.swapHistory()"
+              [lastPlacedSlot]="gameState.lastPlacedSlot()"
               (slotPlace)="onPlacementSlotAction($event)"
               (slotPeek)="onPlacementPeekAction($event)"
               (cardDropped)="onCardDropped($event)"

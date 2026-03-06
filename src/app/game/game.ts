@@ -165,6 +165,7 @@ export class GameComponent implements OnInit, OnDestroy {
           const board = [...this.gameState.board()];
           board[msg.slotIndex] = { occupied: true, byPlayer: msg.byPlayer };
           this.gameState.board.set(board);
+          this.gameState.lastPlacedSlot.set(msg.slotIndex);
           this.gameState.isMyTurn.set(false);
           break;
         }

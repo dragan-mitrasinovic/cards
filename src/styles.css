@@ -39,6 +39,8 @@
   --card-selected-border: #3b82f6;
   --card-selected-glow: rgba(59, 130, 246, 0.3);
   --card-hover-shadow: rgba(0, 0, 0, 0.1);
+  --slot-last-placed-border: #f97316;
+  --slot-last-placed-glow: rgba(249, 115, 22, 0.5);
 }
 
 :where(.dark, .dark *) .card-theme-basic {
@@ -51,6 +53,8 @@
   --card-selected-border: #60a5fa;
   --card-selected-glow: rgba(96, 165, 250, 0.3);
   --card-hover-shadow: rgba(0, 0, 0, 0.4);
+  --slot-last-placed-border: #fb923c;
+  --slot-last-placed-glow: rgba(251, 146, 60, 0.5);
 }
 
 /* Royal */
@@ -67,6 +71,8 @@
   --card-selected-border: #b8860b;
   --card-selected-glow: rgba(184, 134, 11, 0.3);
   --card-hover-shadow: rgba(127, 29, 29, 0.12);
+  --slot-last-placed-border: #14b8a6;
+  --slot-last-placed-glow: rgba(20, 184, 166, 0.5);
 }
 
 :where(.dark, .dark *) .card-theme-royal {
@@ -82,6 +88,8 @@
   --card-selected-border: #daa520;
   --card-selected-glow: rgba(218, 165, 32, 0.3);
   --card-hover-shadow: rgba(0, 0, 0, 0.4);
+  --slot-last-placed-border: #2dd4bf;
+  --slot-last-placed-glow: rgba(45, 212, 191, 0.5);
 }
 
 /* Ocean */
@@ -98,6 +106,8 @@
   --card-selected-border: #0d9488;
   --card-selected-glow: rgba(13, 148, 136, 0.3);
   --card-hover-shadow: rgba(13, 148, 136, 0.12);
+  --slot-last-placed-border: #f97316;
+  --slot-last-placed-glow: rgba(249, 115, 22, 0.5);
 }
 
 :where(.dark, .dark *) .card-theme-ocean {
@@ -113,6 +123,8 @@
   --card-selected-border: #2dd4bf;
   --card-selected-glow: rgba(45, 212, 191, 0.3);
   --card-hover-shadow: rgba(0, 0, 0, 0.4);
+  --slot-last-placed-border: #fb923c;
+  --slot-last-placed-glow: rgba(251, 146, 60, 0.5);
 }
 
 /* Ember */
@@ -129,6 +141,8 @@
   --card-selected-border: #ea580c;
   --card-selected-glow: rgba(234, 88, 12, 0.3);
   --card-hover-shadow: rgba(234, 88, 12, 0.12);
+  --slot-last-placed-border: #06b6d4;
+  --slot-last-placed-glow: rgba(6, 182, 212, 0.5);
 }
 
 :where(.dark, .dark *) .card-theme-ember {
@@ -144,6 +158,8 @@
   --card-selected-border: #f59e0b;
   --card-selected-glow: rgba(245, 158, 11, 0.3);
   --card-hover-shadow: rgba(0, 0, 0, 0.4);
+  --slot-last-placed-border: #22d3ee;
+  --slot-last-placed-glow: rgba(34, 211, 238, 0.5);
 }
 
 /* Nightfall */
@@ -160,6 +176,8 @@
   --card-selected-border: #7c3aed;
   --card-selected-glow: rgba(124, 58, 237, 0.3);
   --card-hover-shadow: rgba(76, 29, 149, 0.12);
+  --slot-last-placed-border: #facc15;
+  --slot-last-placed-glow: rgba(250, 204, 21, 0.5);
 }
 
 :where(.dark, .dark *) .card-theme-nightfall {
@@ -175,6 +193,8 @@
   --card-selected-border: #a78bfa;
   --card-selected-glow: rgba(167, 139, 250, 0.3);
   --card-hover-shadow: rgba(0, 0, 0, 0.4);
+  --slot-last-placed-border: #fbbf24;
+  --slot-last-placed-glow: rgba(251, 191, 36, 0.5);
 }
 
 /* Cyber */
@@ -191,6 +211,8 @@
   --card-selected-border: #06b6d4;
   --card-selected-glow: rgba(6, 182, 212, 0.35);
   --card-hover-shadow: rgba(6, 182, 212, 0.12);
+  --slot-last-placed-border: #f97316;
+  --slot-last-placed-glow: rgba(249, 115, 22, 0.5);
 }
 
 :where(.dark, .dark *) .card-theme-cyber {
@@ -206,4 +228,6 @@
   --card-selected-border: #22d3ee;
   --card-selected-glow: rgba(34, 211, 238, 0.3);
   --card-hover-shadow: rgba(6, 182, 212, 0.2);
+  --slot-last-placed-border: #fb923c;
+  --slot-last-placed-glow: rgba(251, 146, 60, 0.5);
 }

@@ -10,6 +10,7 @@
         [class.slot-swap-selected]="isSwapSelected($index)"
         [class.slot-swapped-mine]="isSlotSwappedByMe($index)"
         [class.slot-swapped-partner]="isSlotSwappedByPartner($index)"
+        [class.slot-last-placed]="isLastPlaced($index)"
         [class.slot-drop-target]="!slot.occupied && dragEnabled() && isMyTurn()"
         cdkDropList
         [cdkDropListData]="$index"

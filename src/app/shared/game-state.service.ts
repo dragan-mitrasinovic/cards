@@ -44,6 +44,9 @@ export class GameStateService {
   readonly swapAccepted = signal<[boolean, boolean]>([false, false]);
   readonly swapHistory = signal<{slotA: number, slotB: number, byPlayer: number}[]>([]);
 
+  // Last-placed highlight
+  readonly lastPlacedSlot = signal(-1);
+
   // Reveal phase state
   readonly revealedCount = signal(0);
   readonly totalRevealCards = signal(0);
@@ -87,6 +90,7 @@ export class GameStateService {
     this.swapSuggester.set(0);
     this.swapAccepted.set([false, false]);
     this.swapHistory.set([]);
+    this.lastPlacedSlot.set(-1);
     this.revealedCount.set(0);
     this.totalRevealCards.set(0);
     this.gameResult.set(null);

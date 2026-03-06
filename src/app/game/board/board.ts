@@ -33,6 +33,9 @@ export class BoardComponent {
   /** Accepted swap history for arrow indicators. */
   readonly swapHistory = input<{slotA: number, slotB: number, byPlayer: number}[]>([]);
 
+  /** Index of the most recently placed card slot, or -1 if none. */
+  readonly lastPlacedSlot = input(-1);
+
   /** Emitted when a player clicks an empty slot to place a card. */
   readonly slotPlace = output<number>();
 
@@ -97,5 +100,9 @@ export class BoardComponent {
   isSlotSwappedByPartner(index: number): boolean {
     const info = this.getSlotSwapInfo(index);
     return info !== null && info.byPlayer !== this.playerNumber();
+  }
+
+  isLastPlaced(index: number): boolean {
+    return this.lastPlacedSlot() === index;
   }
 }
