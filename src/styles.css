@@ -3,6 +3,18 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @layer base {
+  :root {
+    --card-width: 114px;
+    --card-height: 172px;
+  }
+
+  @media (max-width: 767px) {
+    :root {
+      --card-width: 66px;
+      --card-height: 98px;
+    }
+  }
+
   body {
     background-color: #eae6df;
     @apply text-stone-800 antialiased;

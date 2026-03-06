@@ -7,7 +7,7 @@ import { CdkDropListGroup } from '@angular/cdk/drag-drop';
 import { WebSocketService } from '../shared/websocket.service';
 import { GameStateService, type TurnOrderPreference } from '../shared/game-state.service';
 import { CardStyleService } from '../shared/card-style.service';
-import { ServerMessage } from '../shared/messages';
+import { ServerMessage, GameStartMessage, SwapPromptMessage } from '../shared/messages';
 import { TurnOrderPickComponent } from './turn-order-pick/turn-order-pick';
 import { BoardComponent } from './board/board';
 import { HandComponent } from './hand/hand';
@@ -17,13 +17,14 @@ import { GameOverComponent } from './game-over/game-over';
 import { EmoteBarComponent } from './emote-bar/emote-bar';
 import { EmoteDisplayComponent } from './emote-display/emote-display';
 import { PartnerHandComponent } from './partner-hand/partner-hand';
+import { PhasePopupComponent } from './phase-popup/phase-popup';
 
 import { ThemeToggleComponent } from '../shared/theme-toggle/theme-toggle';
 import { CardStylePickerComponent } from '../shared/card-style-picker/card-style-picker';
 
 @Component({
   selector: 'app-game',
-  imports: [FormsModule, CdkDropListGroup, TurnOrderPickComponent, BoardComponent, HandComponent, SwapPhaseComponent, RevealPhaseComponent, GameOverComponent, EmoteBarComponent, EmoteDisplayComponent, PartnerHandComponent, ThemeToggleComponent, CardStylePickerComponent],
+  imports: [FormsModule, CdkDropListGroup, TurnOrderPickComponent, BoardComponent, HandComponent, SwapPhaseComponent, RevealPhaseComponent, GameOverComponent, EmoteBarComponent, EmoteDisplayComponent, PartnerHandComponent, PhasePopupComponent, ThemeToggleComponent, CardStylePickerComponent],
   templateUrl: './game.html',
   styleUrl: './game.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -51,6 +52,10 @@ export class GameComponent implements OnInit, OnDestroy {
   readonly activeEmote = signal<{ text: string; fromSelf: boolean } | null>(null);
   readonly partnerLeftMessage = signal('');
   readonly cardStylePickerOpen = signal(false);
+  readonly showTurnOrderPopup = signal(false);
+  readonly showSwapPhasePopup = signal(false);
+  private bufferedGameStart: GameStartMessage | null = null;
+  private bufferedSwapPrompt: SwapPromptMessage | null = null;
   readonly partnerPlayerNumber = computed(() => this.gameState.playerNumber() === 1 ? 2 : 1);
   readonly partnerRemainingCards = computed(() =>
     7 - this.gameState.board().filter(s => s.byPlayer === this.partnerPlayerNumber()).length
@@ -138,21 +143,18 @@ export class GameComponent implements OnInit, OnDestroy {
             conflict: msg.conflict,
             firstPlayer: msg.firstPlayer,
           });
+          if (!msg.conflict) {
+            this.showTurnOrderPopup.set(true);
+          }
           break;
         }
         case 'game_start': {
-          this.gameState.hand.set(msg.hand);
-          this.gameState.firstPlayer.set(msg.firstPlayer);
-          this.gameState.currentTurn.set(msg.firstPlayer);
-          this.gameState.phase.set('placement');
-          // Reset board and hand state for fresh game or reconnection
-          this.gameState.clearBoard();
-          this.gameState.handUsed.set(msg.handUsed ?? new Array(7).fill(false));
-          this.gameState.passUsed.set([false, false]);
-          this.gameState.swapAccepted.set([false, false]);
-          this.gameState.swapHistory.set([]);
-          this.gameState.swapPending.set(false);
-          this.maxRevealDelay = 0;
+          // If the turn order popup is showing, buffer this message
+          if (this.showTurnOrderPopup()) {
+            this.bufferedGameStart = msg;
+            break;
+          }
+          this.applyGameStart(msg);
           break;
         }
         case 'your_turn': {
@@ -193,13 +195,8 @@ export class GameComponent implements OnInit, OnDestroy {
           break;
         }
         case 'swap_prompt': {
-          this.gameState.phase.set('swap');
-          this.gameState.currentTurn.set(msg.byPlayer);
-          this.gameState.isMyTurn.set(msg.byPlayer === this.gameState.playerNumber());
-          this.gameState.swapPending.set(false);
-          this.gameState.swapSlots.set(null);
-          this.gameState.swapSuggester.set(0);
-          this.selectedSwapSlots.set([]);
+          this.bufferedSwapPrompt = msg;
+          this.showSwapPhasePopup.set(true);
           break;
         }
         case 'swap_suggested': {
@@ -337,8 +334,21 @@ export class GameComponent implements OnInit, OnDestroy {
     this.gameState.turnOrderResult.set(null);
   }
 
+  preferenceLabel(pref: string): string {
+    switch (pref) {
+      case 'first': return 'Go first';
+      case 'neutral': return 'No preference';
+      case 'no_first': return 'Go second';
+      default: return pref;
+    }
+  }
+
+  linkCopied = signal(false);
+
   copyLink(): void {
     navigator.clipboard.writeText(this.shareableLink());
+    this.linkCopied.set(true);
+    setTimeout(() => this.linkCopied.set(false), 2000);
   }
 
   placeCard(cardIndex: number, slotIndex: number): void {
@@ -456,6 +466,48 @@ export class GameComponent implements OnInit, OnDestroy {
       this.activeEmote.set(null);
       this.emoteTimeout = null;
     }, 2500);
+  }
+
+  private applyGameStart(msg: GameStartMessage): void {
+    this.gameState.hand.set(msg.hand);
+    this.gameState.firstPlayer.set(msg.firstPlayer);
+    this.gameState.currentTurn.set(msg.firstPlayer);
+    this.gameState.phase.set('placement');
+    this.gameState.clearBoard();
+    this.gameState.handUsed.set(msg.handUsed ?? new Array(7).fill(false));
+    this.gameState.passUsed.set([false, false]);
+    this.gameState.swapAccepted.set([false, false]);
+    this.gameState.swapHistory.set([]);
+    this.gameState.swapPending.set(false);
+    this.maxRevealDelay = 0;
+  }
+
+  private applySwapPrompt(msg: SwapPromptMessage): void {
+    this.gameState.phase.set('swap');
+    this.gameState.currentTurn.set(msg.byPlayer);
+    this.gameState.isMyTurn.set(msg.byPlayer === this.gameState.playerNumber());
+    this.gameState.swapPending.set(false);
+    this.gameState.swapSlots.set(null);
+    this.gameState.swapSuggester.set(0);
+    this.selectedSwapSlots.set([]);
+  }
+
+  onTurnOrderPopupClosed(): void {
+    this.showTurnOrderPopup.set(false);
+
+    if (this.bufferedGameStart) {
+      this.applyGameStart(this.bufferedGameStart);
+      this.bufferedGameStart = null;
+    }
+  }
+
+  onSwapPhasePopupClosed(): void {
+    this.showSwapPhasePopup.set(false);
+
+    if (this.bufferedSwapPrompt) {
+      this.applySwapPrompt(this.bufferedSwapPrompt);
+      this.bufferedSwapPrompt = null;
+    }
   }
 
   leaveGame(): void {

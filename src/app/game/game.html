@@ -99,9 +99,10 @@
         </div>
         <button
           (click)="copyLink()"
-          class="w-full px-6 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-500"
+          class="w-full px-6 py-2 rounded-lg font-medium transition-colors duration-200"
+          [class]="linkCopied() ? 'bg-green-500 dark:bg-green-600 text-white' : 'bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-500 text-white'"
         >
-          Copy Link
+          {{ linkCopied() ? '✓ Copied!' : 'Copy Link' }}
         </button>
       </div>
     </div>
@@ -296,4 +297,34 @@
 
 @if (cardStylePickerOpen()) {
   <app-card-style-picker (closed)="cardStylePickerOpen.set(false)" />
+}
+
+@if (showTurnOrderPopup()) {
+  <app-phase-popup (closed)="onTurnOrderPopupClosed()">
+    @if (gameState.turnOrderResult(); as r) {
+      <h2 class="text-lg font-bold mb-4 text-stone-800 dark:text-gray-100">Turn Order Decided</h2>
+      <div class="flex justify-center gap-8 mb-4">
+        <div class="text-center">
+          <p class="text-xs text-stone-500 dark:text-gray-400 mb-1 uppercase tracking-wider">{{ gameState.playerName() }} (You)</p>
+          <p class="font-semibold text-base text-stone-800 dark:text-gray-200">{{ preferenceLabel(gameState.playerNumber() === 1 ? r.pick1 : r.pick2) }}</p>
+        </div>
+        <div class="text-center">
+          <p class="text-xs text-stone-500 dark:text-gray-400 mb-1 uppercase tracking-wider">{{ gameState.partnerName() }}</p>
+          <p class="font-semibold text-base text-stone-800 dark:text-gray-200">{{ preferenceLabel(gameState.playerNumber() === 1 ? r.pick2 : r.pick1) }}</p>
+        </div>
+      </div>
+      @if (r.firstPlayer === gameState.playerNumber()) {
+        <p class="text-green-600 dark:text-green-400 font-semibold">You go first!</p>
+      } @else {
+        <p class="text-blue-600 dark:text-blue-400 font-semibold">{{ gameState.partnerName() }} goes first</p>
+      }
+    }
+  </app-phase-popup>
+}
+
+@if (showSwapPhasePopup()) {
+  <app-phase-popup (closed)="onSwapPhasePopupClosed()">
+    <h2 class="text-lg font-bold mb-2 text-stone-800 dark:text-gray-100">All Cards Placed!</h2>
+    <p class="text-stone-600 dark:text-gray-400">Entering swap phase…</p>
+  </app-phase-popup>
 }
