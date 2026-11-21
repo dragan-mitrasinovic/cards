@@ -26,7 +26,7 @@ RUN CGO_ENABLED=0 go build -o server .
 
 
 # ── Stage 3: Minimal production image ────────────────────────────────────────
-FROM alpine:3.21
+FROM alpine:3.24
 
 RUN apk add --no-cache ca-certificates \
   && addgroup -S app \
